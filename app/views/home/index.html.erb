@@ -1,0 +1,279 @@
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-sm-3 col-md-2 sidebar">
+        <ul class="nav nav-sidebar" role="tablist">
+          <li><a href="#statistics" role="tab" data-toggle="tab">Statistiques</a></li>
+<% @names.each_with_index do |name, index| %>
+          <li<%= ' class="active"' if index == 0 %>>
+            <a href="#cluster<%= index + 1 %>" role="tab" data-toggle="tab">Cluster <%= index + 1 %> (<%= name %>)</a>
+            <ul class="nav nav-subsidebar">
+              <li><span>'. $slots .' place'. ($slots > 1 ? 's' : '') .' disponible</span></li>
+            </ul>
+          </li>
+<% end %>
+        </ul>
+      </div>
+      <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main-content">
+        <!--div class="alert alert-info alert-dismissible" role="alert">
+          <strong class="text-uppercase">Nous développons actuellement en direct, ceci pourrait provoquer quelques dysfonctionnements !</strong>
+        </div-->
+        <!--div class="alert alert-success alert-dismissible" role="alert">
+          <strong class="text-uppercase">Le système pour signaler tout défaut sur un iMac est désormais fonctionnel !</strong>
+        </div-->
+        <!--div class="alert alert-danger alert-dismissible" role="alert">
+          <strong class="text-uppercase">Suite à un problème technique les données ne sont plus mise à jour, il sera réglé sous peu.</strong>
+        </div-->
+        <div id="myAlert" class="alert alert-dismissible hide" role="alert">
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <span></span>
+        </div>
+        <div class="tab-content">
+          <div class="tab-pane fade" id="statistics">
+            <div class="page-header">
+              <h1>Total</h1>
+            </div>
+            <div class="row">
+              <div class="col-xs-3 col-md-3">
+                <div class="alert alert-dismissable alert-default">
+                  <div class="num"><?php echo $stats['all']['available'] .' / '. $stats['all']['slots']; ?></div>
+                  <h3>Connections</h3>
+                </div>
+              </div>
+              <div class="col-xs-3 col-md-3">
+                <div class="alert alert-dismissable alert-success">
+                  <div class="num"><?php echo ($stats['all']['slots'] - $stats['all']['available'] - $stats['all']['away']); ?></div>
+                  <h3>Disponible</h3>
+                </div>
+              </div>
+              <div class="col-xs-3 col-md-3">
+                <div class="alert alert-dismissable alert-warning">
+                  <div class="num"><?php echo $stats['all']['dnd']; ?></div>
+                  <h3>Défectueux</h3>
+                </div>
+              </div>
+              <div class="col-xs-3 col-md-3">
+                <div class="alert alert-dismissable alert-danger">
+                  <div class="num"><?php echo $stats['all']['away']; ?></div>
+                  <h3>En panne</h3>
+                </div>
+              </div>
+            </div>
+<?php
+foreach ($maps as $roomIndex => $roomValue)
+{
+  $available = 0;
+  $dnd = 0;
+  $away = 0;
+  $slots = 0;
+
+  if (TRUE == array_key_exists($roomIndex, $stats))
+  {
+    $available = $stats[$roomIndex]['available'];
+    $dnd = $stats[$roomIndex]['dnd'];
+    $away = $stats[$roomIndex]['away'];
+    $slots = $stats[$roomIndex]['slots'];
+  }
+
+  echo '            <div class="page-header">'. PHP_EOL;
+  echo '              <h1>'. (array_key_exists($roomIndex, $roomsName) == TRUE ? $roomsName[$roomIndex] : $roomIndex) .'</h1>'. PHP_EOL;
+  echo '            </div>'. PHP_EOL;
+  echo '            <div class="row">'. PHP_EOL;
+  echo '              <div class="col-xs-3 col-md-3">'. PHP_EOL;
+  echo '                <div class="alert alert-dismissable alert-default">'. PHP_EOL;
+  echo '                  <div class="num">'. $available .' / '. $slots .'</div>'. PHP_EOL;
+  echo '                  <h3>Connections</h3>'. PHP_EOL;
+  echo '                </div>'. PHP_EOL;
+  echo '              </div>'. PHP_EOL;
+  echo '              <div class="col-xs-3 col-md-3">'. PHP_EOL;
+  echo '                <div class="alert alert-dismissable alert-success">'. PHP_EOL;
+  echo '                  <div class="num">'. ($slots - $available - $away) .'</div>'. PHP_EOL;
+  echo '                  <h3>Disponible</h3>'. PHP_EOL;
+  echo '                </div>'. PHP_EOL;
+  echo '              </div>'. PHP_EOL;
+  echo '              <div class="col-xs-3 col-md-3">'. PHP_EOL;
+  echo '                <div class="alert alert-dismissable alert-warning">'. PHP_EOL;
+  echo '                  <div class="num">'. $dnd .'</div>'. PHP_EOL;
+  echo '                  <h3>Défectueux</h3>'. PHP_EOL;
+  echo '                </div>'. PHP_EOL;
+  echo '              </div>'. PHP_EOL;
+  echo '              <div class="col-xs-3 col-md-3">'. PHP_EOL;
+  echo '                <div class="alert alert-dismissable alert-danger">'. PHP_EOL;
+  echo '                  <div class="num">'. $away .'</div>'. PHP_EOL;
+  echo '                  <h3>En panne</h3>'. PHP_EOL;
+  echo '                </div>'. PHP_EOL;
+  echo '              </div>'. PHP_EOL;
+  echo '            </div>'. PHP_EOL;
+}
+
+echo '            <div class="page-header">'. PHP_EOL;
+echo '              <h1>Promotions</h1>'. PHP_EOL;
+echo '            </div>'. PHP_EOL;
+echo '            <div class="row">'. PHP_EOL;
+
+foreach ($stats['all']['years'] as $yearsIndex => $yearValue)
+{
+    echo '            <div class="col-xs-2 col-sm-3 col-md-2 col-lg-2">'. PHP_EOL;
+    echo '              <div class="alert alert-dismissable alert-default">'. PHP_EOL;
+    echo '                <div class="num">'. $yearValue .'</div>'. PHP_EOL;
+    echo '                <h3>'. $yearsIndex .'</h3>'. PHP_EOL;
+    echo '              </div>'. PHP_EOL;
+    echo '            </div>'. PHP_EOL;
+}
+
+echo '            </div>'. PHP_EOL;
+?>
+          </div>
+<% @names.each_with_index do |name, index| %>
+          <div class="tab-pane fade<%= ' in active' if index == 0 %>" id="<%= index + 1 %>">
+            <div class="page-header">
+              <h1>Cluster <%= index + 1 %> (<%= name %>)</h1>
+            </div>
+            <div class="table table-responsive table-cluster">
+              <table class="table">
+                <tbody>
+<% @maps.each_with_index do |row_value, row_index| %>
+                  <tr>
+                    <td><%= row_index + 1 %></td>
+<% row_value.each_with_index do |station_value, station_index| %>
+
+<% end %>
+                  </tr>
+<% end %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+<% end %>
+<?
+    $row = count($roomValue);
+
+    foreach ($roomValue as $rowIndex => $rowValue)
+    {
+      echo '                  <tr>'. PHP_EOL;
+      echo '                    <td>'. $row .'</td>'. PHP_EOL;
+
+      $station = 0;
+
+      foreach ($rowValue as $stationIndex => $stationValue)
+      {
+        if ($stationValue == 'x' || $stationValue == '-')
+        {
+          $station++;
+          $class = array('station');
+
+          if ($stationIndex == 0 || ($rowValue[$stationIndex - 1] != 'x' && $rowValue[$stationIndex - 1] != '-'))
+          {
+            $class[] = 'block-begin';
+          }
+          elseif ($stationIndex == (count($rowValue) - 1) || ($rowValue[$stationIndex + 1] != 'x' && $rowValue[$stationIndex + 1] != '-'))
+          {
+            $class[] = 'block-end';
+          }
+          elseif (($rowValue[$stationIndex - 1] == 'x' || $rowValue[$stationIndex - 1] == '-') && ($rowValue[$stationIndex + 1] == 'x' || $rowValue[$stationIndex + 1] == '-'))
+          {
+            $class[] = 'block-middle';
+          }
+
+          if ($stationValue == 'x')
+          {
+            if (isset($cache[$roomIndex][sprintf('r%dp%d', $row, $station)]))
+            {
+              $client = $cache[$roomIndex][sprintf('r%dp%d', $row, $station)]['user'];
+              $defects = $cache[$roomIndex][sprintf('r%dp%d', $row, $station)]['defects'];
+              $parent_data = array();
+              $childen_data = array();
+              $icon = 'phone';
+
+              if ($defects !== NULL)
+              {
+                if ($defects->global > 0)
+                {
+                  if ($defects->global & 1)
+                  {
+                    $class[] = 'text-danger';
+                    $icon = 'open';
+                    $parent_data[] = 'data-station="removed"';
+                  }
+                  elseif ($defects->global & 2)
+                  {
+                    $class[] = 'text-danger';
+                    $icon = 'wrench';
+                    $parent_data[] = 'data-station="maintenance"';
+                  }
+                }
+                else if ($defects->monitor > 0 || $defects->keyboard > 0 || $defects->mouse > 0)
+                {
+                  $class[] = 'text-warning';
+                  $icon = 'warning-sign';
+                }
+              }
+
+              if ($client !== NULL)
+              {
+                $class[] = 'station-success';
+              }
+              else
+              {
+                $class[] = 'station-default';
+              }
+
+              if ($client !== NULL && $this->session->has_userdata('userid'))
+              {
+                $parent_data[] = 'data-login="'. $client->login .'"';
+                $parent_data[] = 'data-last-activity="'. date('d-m-Y H:i:s', strtotime($client->last_activity)) .'"';
+                $parent_data[] = 'data-avatar="'. (empty($client->avatar) ? 'https://intra.42.fr/static7089/img/nopicture-profilview.png' : $client->avatar) .'"';
+                $childen_data[] = 'data-title="'. $client->name .' ('. $client->years .')"';
+                $childen_data[] = 'data-placement="'. ($row > 0 && $row < 7 ? 'top' : 'bottom') .'"';
+              }
+
+              echo '                    <td id="e'. $cluster .'r'. $row .'p'. $station .'" '. implode(' ', $parent_data) .'>'. PHP_EOL;
+              echo '                      <div class="'. implode(' ', $class) .'" data-contextmenu="default" '. implode(' ', $childen_data) .'>'. (!empty($icon) ? '<span class="glyphicon glyphicon-'. $icon .'"></span>' : '&nbsp;') .'</div>'. PHP_EOL;
+              echo '                    </td>'. PHP_EOL;
+            }
+            else
+            {
+              $class[] = 'station-default';
+
+              echo '                    <td id="e'. $cluster .'r'. $row .'p'. $station .'">'. PHP_EOL;
+              echo '                      <div class="'. implode(' ', $class) .'" data-contextmenu="default"><span class="glyphicon glyphicon-phone"></span></div>'. PHP_EOL;
+              echo '                    </td>'. PHP_EOL;
+            }
+          }
+          elseif ($stationValue == '-')
+          {
+            $class[] = 'station-default';
+
+            echo '                    <td id="e'. $cluster .'r'. $row .'p'. $station .'">'. PHP_EOL;
+            echo '                      <div class="'. implode(' ', $class) .'">&nbsp;</div>'. PHP_EOL;
+            echo '                    </td>'. PHP_EOL;
+          }
+        }
+        elseif ($stationValue == 'o')
+        {
+          echo '                    <td>'. PHP_EOL;
+          echo '                      <div class="block-begin block-end station station-obstacle">&nbsp;</div>'. PHP_EOL;
+          echo '                    </td>'. PHP_EOL;
+        }
+        elseif ($stationValue == '.')
+        {
+          echo '                    <td class="space">&nbsp;</td>'. PHP_EOL;
+        }
+      }
+
+      echo '                  </tr>'. PHP_EOL;
+
+      $row--;
+    }
+
+    echo '                </tbody>'. PHP_EOL;
+    echo '              </table>'. PHP_EOL;
+    echo '            </div>'. PHP_EOL;
+  }
+
+  echo '          </div>'. PHP_EOL;
+}
+?>
+        </div>
+      </div>
+    </div>
+  </div>

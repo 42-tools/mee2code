@@ -1,0 +1,60 @@
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Cluster Map</title>
+  <%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track' => true %>
+  <%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
+  <%= csrf_meta_tags %>
+  <style type="text/css">
+    td:nth-child(odd) > div > span {transform: rotate(180deg)}
+    .station-success {background: #dff0d8}
+    .station-warning {background: #fcf8e3}
+    .station-danger {background: #f2dede}
+    .station-default {background: #f5f5f5}
+    .jabber-me {background: #d9edf7}
+    .station-obstacle {background: #d7d7d7}
+    div[class^=block-], div[class*=block-] {border-top: 1px solid #e7e7e7; border-bottom: 1px solid #e7e7e7; border-width: 1px 1px 4px 1px}
+    .block-begin {border-left: 1px solid #e7e7e7; border-bottom-left-radius: 3px}
+    .block-end {border-right: 1px solid #e7e7e7; border-bottom-right-radius: 3px}
+    .space {width: 25px}
+    .table-cluster td:first-child {font-weight: bold; width: 25px}
+    .table-cluster th {border-bottom: 0 !important}
+    .table-cluster th, td {border-bottom: 10px solid transparent; text-align: center; width: 30px}
+    .table-cluster td {height: 37px;padding: 0 !important; vertical-align: middle !important; border-top: 0 !important}
+    .station {line-height: 37px}
+    .station-popover {width: 250px; height: 131px}
+    .station-popover h1 {font-size: 18px; line-height: 25px; color: #666666}
+    .station-popover figure {float: left; height: 128px; width:112px; margin-right: 10px}
+    .station-popover .info {float: left; width: 128px; font: 11px Arial, Helvetica, sans-serif; color: #808080}
+    .station-popover .info p > span {font-weight: bold}
+    .popover-title {text-align: center; font-weight: bold}
+    .popover.bottom>.arrow:after {border-bottom-color: #f7f7f7}
+    .progress {margin-bottom: 0}
+    .progress-bar-text {position: absolute; width: 100%; text-align: center}
+  </style>
+</head>
+<body>
+  <p class="notice"><%= notice %></p>
+  <p class="alert"><%= alert %></p>
+
+  <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand"><span class="glyphicon glyphicon-th-large" aria-hidden="true"></span> 42 Tools</a>
+      </div>
+      <div class="collapse navbar-collapse">
+        <ul class="nav navbar-nav">
+          <li class="active"><%= link_to 'Carte des clusters', authenticated_root_path %></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+<%= yield %>
+</body>
+</html>
