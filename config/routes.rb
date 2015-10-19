@@ -1,22 +1,18 @@
 Rails.application.routes.draw do
-  # #omniauth_callbacks: 'users/omniauth_callbacks'
-  devise_for :users, path_names: { sign_in: 'login', sign_out: 'logout', sign_up: 'register' },
-                     controllers: { sessions: 'users/sessions', registrations: 'users/registrations',
-                                    passwords: 'users/passwords' }
+  devise_for :users, path_names: { sign_in: 'login', sign_out: 'logout' },
+                     controllers: { sessions: 'users/sessions', omniauth_callbacks: 'users/omniauth_callbacks' }
   get 'home/index'
   get 'cluster/:index.json', to: 'home#cluster', as: 'cluster'
-  
-  root 'home#index', as: :authenticated_root
 
-  # devise_scope :user do
-  #   authenticated :user do
-  #     root 'home#index', as: :authenticated_root
-  #   end
+  devise_scope :user do
+    authenticated :user do
+      root 'home#index', as: :authenticated_root
+    end
 
-  #   unauthenticated do
-  #     root 'users/sessions#new', as: :unauthenticated_root
-  #   end
-  # end
+    unauthenticated do
+      root 'users/sessions#new', as: :unauthenticated_root
+    end
+  end
 
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".
