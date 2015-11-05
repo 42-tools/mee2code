@@ -6,7 +6,7 @@ module OmniAuth
       option :name, :born2code
 
       option :client_options, {
-        site: 'https://api.intrav2.42.fr',
+        site: 'https://api.intra.42.fr',
         authorize_path: '/oauth/authorize',
         token_path: '/oauth/token'
       }

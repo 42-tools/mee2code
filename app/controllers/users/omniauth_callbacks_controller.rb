@@ -34,7 +34,7 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
       set_flash_message(:notice, :success, kind: 'Born2Code') if is_navigational_format?
     else
       session['devise.born2code_data'] = request.env['omniauth.auth']
-      redirect_to new_user_registration_url
+      redirect_to new_user_session_url
     end
   end
 end
