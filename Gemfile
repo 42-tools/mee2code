@@ -7,6 +7,8 @@ gem 'rails'
 gem 'rails-i18n'
 # Use sqlite3 as the database for Active Record
 gem 'sqlite3'
+# Library for bulk inserting data using ActiveRecord.
+gem 'activerecord-import'
 # Authentication solution for Rails
 gem 'devise'
 # Devise locale data

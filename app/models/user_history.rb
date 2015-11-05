@@ -1,7 +1,6 @@
 class UserHistory < ActiveRecord::Base
-  scope :logged, -> { where(date_end: nil) }
+  belongs_to :user
 
-  def self.cluster(index)
-    where('location LIKE ?', "e#{index}r%").pluck(:location, :login).to_h
-  end
+  scope :logged, -> { where(end_at: nil) }
+  scope :cluster, lambda { |index| where('host LIKE ?', %(e#{index}r%)) }
 end
