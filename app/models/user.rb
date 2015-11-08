@@ -1,6 +1,6 @@
 class User < ActiveRecord::Base
-  has_one :user_info_short
-  has_many :user_histories
+  has_one :user_info_short, dependent: :destroy
+  has_many :user_histories, dependent: :destroy
 
   # :registerable, :recoverable, :rememberable, :validatable
   # :confirmable, :lockable and :timeoutable
