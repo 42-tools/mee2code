@@ -5,7 +5,11 @@ namespace :cron do
   task crawler: :environment do |task, args|
     # ActiveRecord::Base.logger = Logger.new(STDOUT)
     set_token
-    crawler
+
+    since = UserHistory.select(:begin_at).order(begin_at: :asc).find_by(end_at: nil)
+    since = UserHistory.new(begin_at: Time.now) unless since
+
+    get_locations since.begin_at
   end
 
   private
@@ -38,10 +42,8 @@ namespace :cron do
     { data: data }
   end
 
-  def crawler
-    since = UserHistory.where(end_at: nil).order(begin_at: :asc).first
-    since = UserHistory.new(begin_at: Time.now) unless since
-    response = get_response_full('/v2/locations', { since: (since.begin_at).strftime('%FT%T%:z') })
+  def get_locations(since)
+    response = get_response_full('/v2/locations', { since: since.strftime('%FT%T%:z') })
     users = []
     user_info_shorts = []
     stories = []
@@ -57,7 +59,7 @@ namespace :cron do
 
       if user.new_record? && !users.include?(user)
         users << user
-        user_info_shorts << UserInfoShort.new(login: data['user']['login'])
+        user_info_shorts << UserInfoShort.new(user_id: data['user']['id'], login: data['user']['login'])
       end
 
       history = UserHistory.find_or_initialize_by(id: data['id']) do |history|
@@ -66,7 +68,6 @@ namespace :cron do
         history.host = data['host']
       end
       history.end_at = data['end_at']
-      # puts Time.parse(data['begin_at']).strftime('%FT%T%:z') + ' - ' + (data['end_at'] ? Time.parse(data['end_at']).strftime('%FT%T%:z') : 'nil')
 
       if history.new_record?
         stories << history
@@ -79,7 +80,6 @@ namespace :cron do
       end
     end
 
-    # puts since.begin_at.strftime('%FT%T%:z') + ' - ' + (since.end_at ? since.end_at.strftime('%FT%T%:z') : 'nil')
 
     puts 'Update user history: ' + updated.to_s + ' (' + errors.to_s + ')'
     insert = User.import users
