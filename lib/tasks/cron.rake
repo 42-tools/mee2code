@@ -17,6 +17,11 @@ namespace :cron do
     get_users
   end
 
+  task user_info_shorts: :environment do |task, args|
+    set_token
+    get_user_info_shorts
+  end
+
   private
 
   def set_token
@@ -71,6 +76,15 @@ namespace :cron do
     puts 'Add users:           ' + insert.num_inserts.to_s + ' (' + (users.count - insert.num_inserts).to_s + ')'
     insert = UserInfoShort.import user_info_shorts
     puts 'Add users info:      ' + insert.num_inserts.to_s + ' (' + (user_info_shorts.count - insert.num_inserts).to_s + ')'
+  end
+
+  def get_user_info_shorts
+    UserInfoShort.where(display_name: nil).limit(400).each do |user_info_short|
+      response = get_response('/v2/users/' + user_info_short.user_id.to_s)
+      data = response[:data]
+      user_info_short.user.update(email: data['email']) if data['email']
+      user_info_short.update(login: data['login'], display_name: data['displayname'])
+    end
   end
 
   def get_locations(since)
