@@ -12,6 +12,11 @@ namespace :cron do
     get_locations since.begin_at
   end
 
+  task users: :environment do |task, args|
+    set_token
+    get_users
+  end
+
   private
 
   def set_token
@@ -40,6 +45,32 @@ namespace :cron do
     data += get_response_full(response[:pagination]['next'])[:data] if response[:pagination]['next']
 
     { data: data }
+  end
+
+  def get_users
+    response = get_response_full('/v2/cursus/42/users')
+    users = []
+    user_info_shorts = []
+
+    response[:data].each do |data|
+      user = User.find_or_initialize_by(id: data['id']) do |user|
+        user.email = data['login'] + '@student.42.fr'
+        user.password = Devise.friendly_token[0, 20]
+      end
+
+      users << user if user.new_record?
+
+      user_info_short = UserInfoShort.find_or_initialize_by(user_id: data['id']) do |user_info_short|
+        user_info_short.login = data['login']
+      end
+
+      user_info_shorts << user_info_short if user_info_short.new_record?
+    end
+
+    insert = User.import users
+    puts 'Add users:           ' + insert.num_inserts.to_s + ' (' + (users.count - insert.num_inserts).to_s + ')'
+    insert = UserInfoShort.import user_info_shorts
+    puts 'Add users info:      ' + insert.num_inserts.to_s + ' (' + (user_info_shorts.count - insert.num_inserts).to_s + ')'
   end
 
   def get_locations(since)
