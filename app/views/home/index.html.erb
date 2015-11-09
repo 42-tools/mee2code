@@ -2,18 +2,18 @@
     <div class="row">
       <div class="col-sm-3 col-md-2 sidebar">
         <ul class="nav nav-sidebar" role="tablist">
-          <li><a href="#statistics" role="tab" data-toggle="tab">Statistiques</a></li>
-<% @names.each_with_index do |name, index| %>
-          <li<%= ' class="active"' if index == 0 %>>
+          <% @names.each_with_index do |name, index| %>
+          <li<%= ' class=active' if index.zero? %>>
             <a href="#cluster<%= index + 1 %>" role="tab" data-toggle="tab">Cluster <%= index + 1 %> (<%= name %>)</a>
             <ul class="nav nav-subsidebar">
-              <li><span>'. $slots .' place'. ($slots > 1 ? 's' : '') .' disponible</span></li>
+              <li><span><%= pluralize(@data[index][:slots], 'place', 'places') %> disponible</span></li>
             </ul>
           </li>
-<% end %>
+          <% end %>
         </ul>
       </div>
       <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main-content">
+        <%= render 'layouts/notice' %>
         <!--div class="alert alert-info alert-dismissible" role="alert">
           <strong class="text-uppercase">Nous développons actuellement en direct, ceci pourrait provoquer quelques dysfonctionnements !</strong>
         </div-->
@@ -28,154 +28,75 @@
           <span></span>
         </div>
         <div class="tab-content">
-          <div class="tab-pane fade" id="statistics">
-            <div class="page-header">
-              <h1>Total</h1>
-            </div>
-            <div class="row">
-              <div class="col-xs-3 col-md-3">
-                <div class="alert alert-dismissable alert-default">
-                  <div class="num"><?php echo $stats['all']['available'] .' / '. $stats['all']['slots']; ?></div>
-                  <h3>Connections</h3>
-                </div>
-              </div>
-              <div class="col-xs-3 col-md-3">
-                <div class="alert alert-dismissable alert-success">
-                  <div class="num"><?php echo ($stats['all']['slots'] - $stats['all']['available'] - $stats['all']['away']); ?></div>
-                  <h3>Disponible</h3>
-                </div>
-              </div>
-              <div class="col-xs-3 col-md-3">
-                <div class="alert alert-dismissable alert-warning">
-                  <div class="num"><?php echo $stats['all']['dnd']; ?></div>
-                  <h3>Défectueux</h3>
-                </div>
-              </div>
-              <div class="col-xs-3 col-md-3">
-                <div class="alert alert-dismissable alert-danger">
-                  <div class="num"><?php echo $stats['all']['away']; ?></div>
-                  <h3>En panne</h3>
-                </div>
-              </div>
-            </div>
-<?php
-foreach ($maps as $roomIndex => $roomValue)
-{
-  $available = 0;
-  $dnd = 0;
-  $away = 0;
-  $slots = 0;
-
-  if (TRUE == array_key_exists($roomIndex, $stats))
-  {
-    $available = $stats[$roomIndex]['available'];
-    $dnd = $stats[$roomIndex]['dnd'];
-    $away = $stats[$roomIndex]['away'];
-    $slots = $stats[$roomIndex]['slots'];
-  }
-
-  echo '            <div class="page-header">'. PHP_EOL;
-  echo '              <h1>'. (array_key_exists($roomIndex, $roomsName) == TRUE ? $roomsName[$roomIndex] : $roomIndex) .'</h1>'. PHP_EOL;
-  echo '            </div>'. PHP_EOL;
-  echo '            <div class="row">'. PHP_EOL;
-  echo '              <div class="col-xs-3 col-md-3">'. PHP_EOL;
-  echo '                <div class="alert alert-dismissable alert-default">'. PHP_EOL;
-  echo '                  <div class="num">'. $available .' / '. $slots .'</div>'. PHP_EOL;
-  echo '                  <h3>Connections</h3>'. PHP_EOL;
-  echo '                </div>'. PHP_EOL;
-  echo '              </div>'. PHP_EOL;
-  echo '              <div class="col-xs-3 col-md-3">'. PHP_EOL;
-  echo '                <div class="alert alert-dismissable alert-success">'. PHP_EOL;
-  echo '                  <div class="num">'. ($slots - $available - $away) .'</div>'. PHP_EOL;
-  echo '                  <h3>Disponible</h3>'. PHP_EOL;
-  echo '                </div>'. PHP_EOL;
-  echo '              </div>'. PHP_EOL;
-  echo '              <div class="col-xs-3 col-md-3">'. PHP_EOL;
-  echo '                <div class="alert alert-dismissable alert-warning">'. PHP_EOL;
-  echo '                  <div class="num">'. $dnd .'</div>'. PHP_EOL;
-  echo '                  <h3>Défectueux</h3>'. PHP_EOL;
-  echo '                </div>'. PHP_EOL;
-  echo '              </div>'. PHP_EOL;
-  echo '              <div class="col-xs-3 col-md-3">'. PHP_EOL;
-  echo '                <div class="alert alert-dismissable alert-danger">'. PHP_EOL;
-  echo '                  <div class="num">'. $away .'</div>'. PHP_EOL;
-  echo '                  <h3>En panne</h3>'. PHP_EOL;
-  echo '                </div>'. PHP_EOL;
-  echo '              </div>'. PHP_EOL;
-  echo '            </div>'. PHP_EOL;
-}
-
-echo '            <div class="page-header">'. PHP_EOL;
-echo '              <h1>Promotions</h1>'. PHP_EOL;
-echo '            </div>'. PHP_EOL;
-echo '            <div class="row">'. PHP_EOL;
-
-foreach ($stats['all']['years'] as $yearsIndex => $yearValue)
-{
-    echo '            <div class="col-xs-2 col-sm-3 col-md-2 col-lg-2">'. PHP_EOL;
-    echo '              <div class="alert alert-dismissable alert-default">'. PHP_EOL;
-    echo '                <div class="num">'. $yearValue .'</div>'. PHP_EOL;
-    echo '                <h3>'. $yearsIndex .'</h3>'. PHP_EOL;
-    echo '              </div>'. PHP_EOL;
-    echo '            </div>'. PHP_EOL;
-}
-
-echo '            </div>'. PHP_EOL;
-?>
-          </div>
-<% @names.each_with_index do |name, index| %>
-          <div class="tab-pane fade<%= ' in active' if index == 0 %>" id="<%= index + 1 %>">
+          <% @names.each_with_index do |name, index| %>
+          <div class="tab-pane fade<%= ' in active' if index.zero? %>" id="cluster<%= index + 1 %>">
             <div class="page-header">
               <h1>Cluster <%= index + 1 %> (<%= name %>)</h1>
             </div>
             <div class="table table-responsive table-cluster">
               <table class="table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <% col_num = 0 %>
+                    <% @maps[index][1].each do |station_value| %>
+                    <% if station_value == 'x' || station_value == 'o' || station_value == '-' %>
+                    <th><%= col_num += 1 %></th>
+                    <% else %>
+                    <th>&nbsp;</th>
+                    <% end %>
+                    <% end %>
+                  </tr>
+                </thead>
                 <tbody>
-<% @maps.each_with_index do |row_value, row_index| %>
+                  <% @maps[index].each_with_index do |row_value, row_index| %>
                   <tr>
                     <td><%= row_index + 1 %></td>
-<% row_value.each_with_index do |station_value, station_index| %>
-
-<% end %>
+                    <% row_value.each_with_index do |station_value, station_index| %>
+                    <% if station_value == 'x' || station_value == '-' %>
+                    <% class_name = ['station'];
+                    if station_index == 0 || (row_value[station_index - 1] != 'x' && row_value[station_index - 1] != '-')
+                      class_name << 'block-begin'
+                    elsif station_index == (row_value.length - 1) || (row_value[station_index + 1] != 'x' && row_value[station_index + 1] != '-')
+                      class_name << 'block-end'
+                    elsif (row_value[station_index - 1] == 'x' || row_value[station_index - 1] == '-') && (row_value[station_index + 1] == 'x' || row_value[station_index + 1] == '-')
+                      class_name << 'block-middle'
+                    end
+                    %>
+                    <% if station_value == 'x' %>
+                    <% parent_data, childen_data = {}, {}
+                    if client = @data[index][:users]["e#{index + 1}r#{row_index + 1}p#{station_index + 1}"]
+                      class_name << 'station-success'
+                      parent_data = { login: client.login, 'last-activity': '', avatar: '' };
+                      childen_data = { title: client.display_name || '', placement: 'auto' };
+                    else
+                      class_name << 'station-default'
+                    end %>
+                    <td id="e<%= index + 1 %>r<%= row_index + 1 %>p<%= station_index + 1 %>"<%= parent_data.map { |name, value| 'data-' + name.to_s + '="' + value + '"' }.join(' ').html_safe %>>
+                      <div class="<%= class_name.join ' ' %>"<%= childen_data.map { |name, value| 'data-' + name.to_s + '="' + value + '"' }.join(' ').html_safe %>><span class="glyphicon glyphicon-phone"></span>&nbsp;</div>
+                    </td>
+                    <% elsif station_value == '-' %>
+                    <% class_name << 'station-default' %>
+                    <td id="e<%= index + 1 %>r<%= row_index + 1 %>p<%= station_index + 1 %>">
+                      <div class="<%= class_name.join ' ' %>">&nbsp;</div>
+                    </td>
+                    <% end %>
+                    <% elsif station_value == 'o' %>
+                    <td>
+                      <div class="block-begin block-end station station-obstacle">&nbsp;</div>
+                    </td>
+                    <% elsif station_value == '.' %>
+                    <td class="space">&nbsp;</td>
+                    <% end %>
+                    <% end %>
                   </tr>
-<% end %>
+                  <% end %>
                 </tbody>
               </table>
             </div>
           </div>
-<% end %>
-<?
-    $row = count($roomValue);
-
-    foreach ($roomValue as $rowIndex => $rowValue)
-    {
-      echo '                  <tr>'. PHP_EOL;
-      echo '                    <td>'. $row .'</td>'. PHP_EOL;
-
-      $station = 0;
-
-      foreach ($rowValue as $stationIndex => $stationValue)
-      {
-        if ($stationValue == 'x' || $stationValue == '-')
-        {
-          $station++;
-          $class = array('station');
-
-          if ($stationIndex == 0 || ($rowValue[$stationIndex - 1] != 'x' && $rowValue[$stationIndex - 1] != '-'))
-          {
-            $class[] = 'block-begin';
-          }
-          elseif ($stationIndex == (count($rowValue) - 1) || ($rowValue[$stationIndex + 1] != 'x' && $rowValue[$stationIndex + 1] != '-'))
-          {
-            $class[] = 'block-end';
-          }
-          elseif (($rowValue[$stationIndex - 1] == 'x' || $rowValue[$stationIndex - 1] == '-') && ($rowValue[$stationIndex + 1] == 'x' || $rowValue[$stationIndex + 1] == '-'))
-          {
-            $class[] = 'block-middle';
-          }
-
-          if ($stationValue == 'x')
-          {
+          <% end %>
+<!--
             if (isset($cache[$roomIndex][sprintf('r%dp%d', $row, $station)]))
             {
               $client = $cache[$roomIndex][sprintf('r%dp%d', $row, $station)]['user'];
@@ -238,41 +159,7 @@ echo '            </div>'. PHP_EOL;
               echo '                      <div class="'. implode(' ', $class) .'" data-contextmenu="default"><span class="glyphicon glyphicon-phone"></span></div>'. PHP_EOL;
               echo '                    </td>'. PHP_EOL;
             }
-          }
-          elseif ($stationValue == '-')
-          {
-            $class[] = 'station-default';
-
-            echo '                    <td id="e'. $cluster .'r'. $row .'p'. $station .'">'. PHP_EOL;
-            echo '                      <div class="'. implode(' ', $class) .'">&nbsp;</div>'. PHP_EOL;
-            echo '                    </td>'. PHP_EOL;
-          }
-        }
-        elseif ($stationValue == 'o')
-        {
-          echo '                    <td>'. PHP_EOL;
-          echo '                      <div class="block-begin block-end station station-obstacle">&nbsp;</div>'. PHP_EOL;
-          echo '                    </td>'. PHP_EOL;
-        }
-        elseif ($stationValue == '.')
-        {
-          echo '                    <td class="space">&nbsp;</td>'. PHP_EOL;
-        }
-      }
-
-      echo '                  </tr>'. PHP_EOL;
-
-      $row--;
-    }
-
-    echo '                </tbody>'. PHP_EOL;
-    echo '              </table>'. PHP_EOL;
-    echo '            </div>'. PHP_EOL;
-  }
-
-  echo '          </div>'. PHP_EOL;
-}
-?>
+-->
         </div>
       </div>
     </div>

@@ -1,7 +1,6 @@
 class HomeController < ApplicationController
   def index
     @names = ['Metropolis', 'Westeros', 'Tatooine']
-    @data = [UserHistory.logged.cluster(1), UserHistory.logged.cluster(2), UserHistory.logged.cluster(3)]
     @maps = [[
             ['x', 'x', 'x', 'x', 'x', 'x', 'x', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x'],
             ['x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x'],
@@ -47,6 +46,18 @@ class HomeController < ApplicationController
             ['x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x'],
             ['x', 'x', 'x', 'x', 'x', 'x', 'x', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x']
           ]]
+    users = UserInfoShort.all.map { |info| [info.user_id, info] }.to_h
+    @data = [{ slots: 0, users: UserHistory.logged.cluster(1).map { |history| [history.host, users[history.user_id]] }.to_h },
+             { slots: 0, users: UserHistory.logged.cluster(2).map { |history| [history.host, users[history.user_id]] }.to_h },
+             { slots: 0, users: UserHistory.logged.cluster(3).map { |history| [history.host, users[history.user_id]] }.to_h }]
+    @maps.each_with_index do |cluster, idx|
+      cluster.each do |row|
+        row.each do |col|
+          @data[idx][:slots] += 1 if col == 'x'
+        end
+      end
+      @data[idx][:slots] -= @data[idx][:users].count
+    end
   end
 
   def cluster
