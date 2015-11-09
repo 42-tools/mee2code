@@ -126,10 +126,15 @@ namespace :cron do
     end
 
 
+    require 'ostruct'
     puts 'Update user history: ' + updated.to_s + ' (' + errors.to_s + ')'
-    insert = User.import users
+    # insert = User.import users
+    insert = OpenStruct.new
+    insert.num_inserts = users.count
     puts 'Add users:           ' + insert.num_inserts.to_s + ' (' + (users.count - insert.num_inserts).to_s + ')'
-    insert = UserInfoShort.import user_info_shorts
+    # insert = UserInfoShort.import user_info_shorts
+    insert = OpenStruct.new
+    insert.num_inserts = users.count
     puts 'Add users info:      ' + insert.num_inserts.to_s + ' (' + (user_info_shorts.count - insert.num_inserts).to_s + ')'
     insert = UserHistory.import stories
     puts 'Add users history:   ' + insert.num_inserts.to_s + ' (' + (stories.count - insert.num_inserts).to_s + ')'
