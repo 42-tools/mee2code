@@ -12,13 +12,14 @@ namespace :cron do
     get_locations since.begin_at
   end
 
+  task seed: :environment do |task, args|
+    set_token
+    get_locations
+  end
+
   task users: :environment do |task, args|
     set_token
     get_users
-  end
-
-  task user_info_shorts: :environment do |task, args|
-    set_token
     get_user_info_shorts
   end
 
@@ -79,7 +80,7 @@ namespace :cron do
   end
 
   def get_user_info_shorts
-    UserInfoShort.where(display_name: nil).limit(400).each do |user_info_short|
+    UserInfoShort.where(display_name: nil).each do |user_info_short|
       response = get_response('/v2/users/' + user_info_short.user_id.to_s)
       data = response[:data]
       user_info_short.user.update(email: data['email']) if data['email']
@@ -87,8 +88,10 @@ namespace :cron do
     end
   end
 
-  def get_locations(since)
-    response = get_response_full('/v2/locations', { since: since.strftime('%FT%T%:z') })
+  def get_locations(since = nil)
+    params = {}
+    params[:since] = since.strftime('%FT%T%:z') if since
+    response = get_response_full('/v2/locations', params)
     users = []
     user_info_shorts = []
     stories = []

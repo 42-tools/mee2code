@@ -110,6 +110,7 @@ GEM
       oauth2 (~> 1.0)
       omniauth (~> 1.2)
     orm_adapter (0.5.0)
+    puma (2.15.3)
     rack (1.6.4)
     rack-test (0.6.3)
       rack (>= 1.0)
@@ -193,6 +194,7 @@ DEPENDENCIES
   jquery-rails
   jquery-ui-rails
   omniauth-oauth2
+  puma
   rails
   rails-i18n
   sass-rails
@@ -202,6 +204,3 @@ DEPENDENCIES
   turbolinks
   uglifier
   web-console
-
-BUNDLED WITH
-   1.10.5
