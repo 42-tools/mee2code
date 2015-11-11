@@ -3,13 +3,19 @@ require 'oauth2'
 namespace :cron do
   desc 'TODO'
   task crawler: :environment do |task, args|
-    # ActiveRecord::Base.logger = Logger.new(STDOUT)
     set_token
 
-    since = UserHistory.select(:begin_at).order(begin_at: :asc).find_by(end_at: nil)
-    since = UserHistory.new(begin_at: Time.now) unless since
+    oldest_location = get_locations({ active: true })
 
-    get_locations since.begin_at
+    UserHistory.where('begin_at < ?', oldest_location.begin_at).update_all(end_at: Time.now) if oldest_location
+  end
+
+  task verify_locations: :environment do |task, args|
+    set_token
+
+    since = UserHistory.select(:begin_at).order(begin_at: :asc).find_by(verified: false)
+
+    get_locations({ since: since.begin_at.strftime('%FT%T%:z') }) if since
   end
 
   task seed: :environment do |task, args|
@@ -29,12 +35,10 @@ namespace :cron do
     uid = Rails.application.secrets.api_born2code_uid
     secret = Rails.application.secrets.api_born2code_secret
     client = OAuth2::Client.new(uid, secret, site: 'https://api.intra.42.fr', ssl: { verify: false })
-    # client.connection.response :logger
     @token = client.client_credentials.get_token
   end
 
   def get_response(path, params = {})
-    # puts path
     response = @token.get(path, params: params)
     pagination = response.headers['link'].split(', ').map do |p|
       link, params = p.split('; ')
@@ -88,34 +92,19 @@ namespace :cron do
     end
   end
 
-  def get_locations(since = nil)
-    params = {}
-    params[:since] = since.strftime('%FT%T%:z') if since
+  def get_locations(params = {})
     response = get_response_full('/v2/locations', params)
-    users = []
-    user_info_shorts = []
     stories = []
     updated, errors = 0, 0
 
-    # puts JSON.pretty_generate(response[:data])
-
     response[:data].each do |data|
-      user = User.find_or_initialize_by(id: data['user']['id']) do |user|
-        user.email = data['user']['login'] + '@student.42.fr'
-        user.password = Devise.friendly_token[0, 20]
-      end
-
-      if user.new_record? && !users.include?(user)
-        users << user
-        user_info_shorts << UserInfoShort.new(user_id: data['user']['id'], login: data['user']['login'])
-      end
-
       history = UserHistory.find_or_initialize_by(id: data['id']) do |history|
         history.user_id = data['user']['id']
         history.begin_at = data['begin_at']
         history.host = data['host']
       end
       history.end_at = data['end_at']
+      history.verified = data['end_at'] != nil
 
       if history.new_record?
         stories << history
@@ -128,18 +117,10 @@ namespace :cron do
       end
     end
 
-
-    require 'ostruct'
     puts 'Update user history: ' + updated.to_s + ' (' + errors.to_s + ')'
-    # insert = User.import users
-    insert = OpenStruct.new
-    insert.num_inserts = users.count
-    puts 'Add users:           ' + insert.num_inserts.to_s + ' (' + (users.count - insert.num_inserts).to_s + ')'
-    # insert = UserInfoShort.import user_info_shorts
-    insert = OpenStruct.new
-    insert.num_inserts = users.count
-    puts 'Add users info:      ' + insert.num_inserts.to_s + ' (' + (user_info_shorts.count - insert.num_inserts).to_s + ')'
     insert = UserHistory.import stories
     puts 'Add users history:   ' + insert.num_inserts.to_s + ' (' + (stories.count - insert.num_inserts).to_s + ')'
+
+    stories.sort { |x, y| x.begin_at <=> y.begin_at }.first
   end
 end

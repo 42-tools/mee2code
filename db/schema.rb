@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151027195454) do
+ActiveRecord::Schema.define(version: 20151111212851) do
 
   create_table "user_histories", force: :cascade do |t|
     t.integer  "user_id"
@@ -20,6 +20,7 @@ ActiveRecord::Schema.define(version: 20151027195454) do
     t.datetime "end_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean  "verified"
   end
 
   add_index "user_histories", ["user_id"], name: "index_user_histories_on_user_id"
