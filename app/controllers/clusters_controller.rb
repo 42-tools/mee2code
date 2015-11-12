@@ -1,4 +1,4 @@
-class HomeController < ApplicationController
+class ClustersController < ApplicationController
   def index
     @names = ['Metropolis', 'Westeros', 'Tatooine']
     @maps = [[
@@ -60,7 +60,7 @@ class HomeController < ApplicationController
     end
   end
 
-  def cluster
+  def get
     render json: UserHistory.logged.cluster(params[:index]), status: :ok
   end
 end
