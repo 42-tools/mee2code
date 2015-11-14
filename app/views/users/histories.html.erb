@@ -20,7 +20,11 @@
                   <td colspan="3">Vous n'avez aucun historique</td>
                 </tr>
                 <% else %>
-                <% @histories.each do |history| %>
+                <% @histories.each do |week, histories| %>
+                <tr class="info">
+                  <td colspan="3">Semaine du <%= l(week, format: '%A %e %B') %> au <%= l(week + 6.days, format: '%A %e %B') %></td>
+                </tr>
+                <% histories.each do |history| %>
                 <tr>
                   <td><%= history.host.upcase %></td>
                   <td>
@@ -32,6 +36,7 @@
                   </td>
                   <td><%= distance_of_time_in_words(history.begin_at, history.end_at ? history.end_at : Time.current, include_seconds: true) %></td>
                 </tr>
+                <% end %>
                 <% end %>
                 <% end %>
               </tbody>
