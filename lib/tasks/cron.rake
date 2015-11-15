@@ -14,7 +14,7 @@ namespace :cron do
     set_token
 
     arel = UserHistory.arel_table
-    since = UserHistory.select(:begin_at).order(begin_at: :asc).where(arel[:verified].eq(nil).or(arel[:verified].eq(false))).first
+    since = UserHistory.select(:begin_at).order(:begin_at).where(arel[:verified].eq(nil).or(arel[:verified].eq(false))).first
 
     get_locations({ since: since.begin_at.strftime('%FT%T%:z') }) if since
   end
