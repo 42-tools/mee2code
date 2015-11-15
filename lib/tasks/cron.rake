@@ -13,7 +13,8 @@ namespace :cron do
   task verify_locations: :environment do |task, args|
     set_token
 
-    since = UserHistory.select(:begin_at).order(begin_at: :asc).find_by(verified: false)
+    arel = UserHistory.arel_table
+    since = UserHistory.select(:begin_at).order(begin_at: :asc).where(arel[:verified].eq(nil).or(arel[:verified].eq(false))).first
 
     get_locations({ since: since.begin_at.strftime('%FT%T%:z') }) if since
   end
