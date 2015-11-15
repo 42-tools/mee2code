@@ -109,7 +109,7 @@ namespace :cron do
         user_project.final_mark = data['final_mark']
 
         if user_project.new_record?
-          user_projects << user_project
+          user_projects << user_project unless user_projects.include?(user_project)
         else
           if user_project.save
             updated += 1
@@ -158,6 +158,8 @@ namespace :cron do
       user_info_short.user.update(email: data['email']) if data['email']
       user_info_short.update(login: data['login'], display_name: data['displayname'])
     end
+    # require 'net/http'
+    # Net::HTTP.get_response(URI('https://smsapi.free-mobile.fr/sendmsg?user=16907107&pass=EWcXVlRnuPZ6AR&msg=' + user_info_shorts.map(&:login).join(', '))) unless user_info_shorts.empty?
   end
 
   def get_locations(params = {})
