@@ -29,6 +29,16 @@ namespace :cron do
     get_user_info_shorts
   end
 
+  task projects: :environment do |task, args|
+    set_token
+    get_projects
+  end
+
+  task user_projects: :environment do |task, args|
+    set_token
+    get_user_projects
+  end
+
   private
 
   def set_token
@@ -55,6 +65,64 @@ namespace :cron do
     data += get_response_full(response[:pagination]['next'])[:data] if response[:pagination]['next']
 
     { data: data }
+  end
+
+  def get_projects
+    response = get_response_full('/v2/cursus/42/projects')
+    projects = []
+    updated, errors = 0, 0
+
+    response[:data].each do |data|
+      project = Project.find_or_initialize_by(id: data['id'])
+      project.name = data['name']
+      project.slug = data['slug']
+
+      if project.new_record?
+        projects << project
+      else
+        if project.save
+          updated += 1
+        else
+          errors += 1
+        end
+      end
+    end
+
+    puts 'Update projects: ' + updated.to_s + ' (' + errors.to_s + ')'
+    insert = Project.import projects
+    puts 'Add projects:    ' + insert.num_inserts.to_s + ' (' + (projects.count - insert.num_inserts).to_s + ')'
+  end
+
+  def get_user_projects
+    user_projects = []
+    updated, errors = 0, 0
+
+    Project.all.each do |project|
+      response = get_response_full('/v2/projects/' + project.slug + '/projects_users')
+
+      response[:data].each do |data|
+        user_project = UserProject.find_or_initialize_by(id: data['id']) do |user_project|
+          user_project.user_id = data['user']['id']
+          user_project.project_id = project.id
+          user_project.occurrence = data['occurrence']
+        end
+        user_project.final_mark = data['final_mark']
+
+        if user_project.new_record?
+          user_projects << user_project
+        else
+          if user_project.save
+            updated += 1
+          else
+            errors += 1
+          end
+        end
+      end
+    end
+
+    puts 'Update user projects: ' + updated.to_s + ' (' + errors.to_s + ')'
+    insert = UserProject.import user_projects
+    puts 'Add user projects:    ' + insert.num_inserts.to_s + ' (' + (user_projects.count - insert.num_inserts).to_s + ')'
   end
 
   def get_users

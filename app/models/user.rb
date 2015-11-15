@@ -1,13 +1,15 @@
 class User < ActiveRecord::Base
   has_one :user_info_short, dependent: :destroy
   has_many :user_histories, dependent: :destroy
+  has_many :user_projects, dependent: :destroy
+  has_many :projects, through: :user_projects
 
   devise :database_authenticatable, :trackable, :omniauthable,
                                     omniauth_providers: [:born2code]
 
   def self.from_omniauth(auth)
     UserInfoShort.find_or_create_by(user_id: auth.uid) do |user|
-      user.login = auth.info.email
+      user.login = auth.info.login
       user.display_name = auth.info.display_name
     end
 
