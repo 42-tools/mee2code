@@ -67,7 +67,7 @@
                     <% parent_data, childen_data = {}, {}
                     if client = @data[index][:users]["e#{index + 1}r#{row_index + 1}p#{station_index + 1}"]
                       class_name << 'station-success'
-                      parent_data = { login: client.login, 'last-activity': '', avatar: '' };
+                      parent_data = { login: client.login, 'last-activity': '', avatar: 'https://cdn.intra.42.fr/userprofil/' + client.login + '.jpg' };
                       childen_data = { title: client.display_name || '', placement: 'auto' };
                     else
                       class_name << 'station-default'
