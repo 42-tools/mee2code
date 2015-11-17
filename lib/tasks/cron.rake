@@ -7,7 +7,7 @@ namespace :cron do
 
     oldest_location = get_locations({ active: true })
 
-    UserHistory.where('begin_at < ?', oldest_location.begin_at).update_all(end_at: Time.now) if oldest_location
+    UserHistory.where(end_at: nil).where('begin_at < ?', oldest_location.begin_at).update_all(end_at: Time.now) if oldest_location
   end
 
   task verify_locations: :environment do |task, args|
@@ -21,7 +21,7 @@ namespace :cron do
 
   task seed: :environment do |task, args|
     set_token
-    get_locations
+    get_seeding
   end
 
   task users: :environment do |task, args|
@@ -163,12 +163,29 @@ namespace :cron do
     # Net::HTTP.get_response(URI('https://smsapi.free-mobile.fr/sendmsg?user=16907107&pass=EWcXVlRnuPZ6AR&msg=' + user_info_shorts.map(&:login).join(', '))) unless user_info_shorts.empty?
   end
 
+  def get_seeding(params = {})
+    puts '== 1 =============================================' unless params[:page]
+    response = get_response('/v2/locations', params)
+    adds_locations(response[:data])
+
+    if response[:pagination]['next']
+      params[:page] = Rack::Utils.parse_nested_query(URI.parse(response[:pagination]['next']).query)['page']
+      max_page = Rack::Utils.parse_nested_query(URI.parse(response[:pagination]['last']).query)['page']
+      puts '== ' + (params[:page] + ' / ' + max_page + ' ').ljust(47, '=')
+      get_seeding(params)
+    end
+  end
+
   def get_locations(params = {})
     response = get_response_full('/v2/locations', params)
+    adds_locations(response[:data]).sort { |x, y| x.begin_at <=> y.begin_at }.first
+  end
+
+  def adds_locations(data)
     stories = []
     updated, errors = 0, 0
 
-    response[:data].each do |data|
+    data.each do |data|
       history = UserHistory.find_or_initialize_by(id: data['id']) do |history|
         history.user_id = data['user']['id']
         history.begin_at = data['begin_at']
@@ -192,6 +209,6 @@ namespace :cron do
     insert = UserHistory.import stories
     puts 'Add users history:   ' + insert.num_inserts.to_s + ' (' + (stories.count - insert.num_inserts).to_s + ')'
 
-    stories.sort { |x, y| x.begin_at <=> y.begin_at }.first
+    stories
   end
 end
