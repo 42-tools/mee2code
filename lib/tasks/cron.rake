@@ -183,31 +183,21 @@ namespace :cron do
 
   def adds_locations(data)
     stories = []
-    updated, errors = 0, 0
 
     data.each do |data|
-      history = UserHistory.find_or_initialize_by(id: data['id']) do |history|
-        history.user_id = data['user']['id']
-        history.begin_at = data['begin_at']
-        history.host = data['host']
-      end
-      history.end_at = data['end_at']
-      history.verified = data['end_at'] != nil
-
-      if history.new_record?
-        stories << history
-      else
-        if history.save
-          updated += 1
-        else
-          errors += 1
-        end
-      end
+      stories << UserHistory.new(id: data['id'], user_id: data['user']['id'], begin_at: data['begin_at']
+                                 host: data['host'], end_at: data['end_at'], verified: data['end_at'] != nil)
     end
 
-    puts 'Update user history: ' + updated.to_s + ' (' + errors.to_s + ')'
-    insert = UserHistory.import stories
-    puts 'Add users history:   ' + insert.num_inserts.to_s + ' (' + (stories.count - insert.num_inserts).to_s + ')'
+    stories_exists = UserHistory.where(id: stories.map(&:id))
+
+    (stories & stories_exists).each do |history|
+      UserHistory.where(id: history.id).update_all(history.serializable_hash(only: [:end_at, :verified]))
+    end
+
+    puts 'Update user history: ' + stories_exists.length.to_s
+    UserHistory.import (stories - stories_exists)
+    puts 'Add users history:   ' + (stories.length - stories_exists.length).to_s
 
     stories
   end
