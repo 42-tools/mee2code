@@ -185,7 +185,7 @@ namespace :cron do
     stories = []
 
     data.each do |data|
-      stories << UserHistory.new(id: data['id'], user_id: data['user']['id'], begin_at: data['begin_at']
+      stories << UserHistory.new(id: data['id'], user_id: data['user']['id'], begin_at: data['begin_at'],
                                  host: data['host'], end_at: data['end_at'], verified: data['end_at'] != nil)
     end
 
