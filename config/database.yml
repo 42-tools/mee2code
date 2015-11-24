@@ -22,4 +22,8 @@ test:
 
 production:
   <<: *default
-  database: db/production.sqlite3
+  adapter: postgresql
+  encoding: unicode
+  database: meet2code_production
+  username: meet2code
+  password: 

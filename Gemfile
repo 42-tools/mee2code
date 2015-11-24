@@ -5,8 +5,6 @@ source 'https://rubygems.org'
 gem 'rails'
 # Rails locale data
 gem 'rails-i18n'
-# Use sqlite3 as the database for Active Record
-gem 'sqlite3'
 # Library for bulk inserting data using ActiveRecord.
 gem 'activerecord-import'
 # Authentication solution for Rails
@@ -43,7 +41,15 @@ gem 'puma'
 # Use Capistrano for deployment
 # gem 'capistrano-rails', group: :development
 
+group :production do
+  # Use postgresql as the database for Active Record
+  gem 'pg'
+end
+
 group :development, :test do
+  # Use sqlite3 as the database for Active Record
+  gem 'sqlite3'
+
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug'
 end
