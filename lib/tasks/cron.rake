@@ -7,7 +7,7 @@ namespace :cron do
 
     oldest_location = get_locations({ active: true })
 
-    UserHistory.where(end_at: nil).where('begin_at < ?', oldest_location.begin_at).update_all(end_at: Time.now) if oldest_location
+    UserHistory.where(end_at: nil).where.not(id: oldest_location).update_all(end_at: Time.now) unless oldest_location.empty?
   end
 
   task verify_locations: :environment do |task, args|
@@ -159,8 +159,6 @@ namespace :cron do
       user_info_short.user.update(email: data['email']) if data['email']
       user_info_short.update(login: data['login'], display_name: data['displayname'])
     end
-    # require 'net/http'
-    # Net::HTTP.get_response(URI('https://smsapi.free-mobile.fr/sendmsg?user=16907107&pass=EWcXVlRnuPZ6AR&msg=' + user_info_shorts.map(&:login).join(', '))) unless user_info_shorts.empty?
   end
 
   def get_seeding(params = {})
@@ -178,24 +176,30 @@ namespace :cron do
 
   def get_locations(params = {})
     response = get_response_full('/v2/locations', params)
-    adds_locations(response[:data]).sort { |x, y| x.begin_at <=> y.begin_at }.first
+    adds_locations(response[:data]).map(&:id)
   end
 
   def adds_locations(data)
     stories = []
+    updated = 0
 
     data.each do |data|
       stories << UserHistory.new(id: data['id'], user_id: data['user']['id'], begin_at: data['begin_at'],
                                  host: data['host'], end_at: data['end_at'], verified: data['end_at'] != nil)
     end
 
-    stories_exists = UserHistory.where(id: stories.map(&:id))
+    stories_exists = UserHistory.select(:id, :end_at, :verified).where(id: stories.map(&:id))
 
-    (stories & stories_exists).each do |history|
-      UserHistory.where(id: history.id).update_all(history.serializable_hash(only: [:end_at, :verified]))
+    (stories & stories_exists).zip(stories_exists).each do |data, history|
+      history.assign_attributes(data.serializable_hash(only: [:end_at, :verified]))
+
+      if history.changed?
+        history.save
+        updated += 1
+      end
     end
 
-    puts 'Update user history: ' + stories_exists.length.to_s
+    puts 'Update user history: ' + updated.to_s + ' / ' + stories_exists.length.to_s
     UserHistory.import (stories - stories_exists)
     puts 'Add users history:   ' + (stories.length - stories_exists.length).to_s
 
