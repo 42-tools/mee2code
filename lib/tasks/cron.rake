@@ -35,11 +35,6 @@ namespace :cron do
     get_projects
   end
 
-  task user_projects: :environment do |task, args|
-    set_token
-    get_user_projects
-  end
-
   private
 
   def set_token
@@ -73,59 +68,56 @@ namespace :cron do
   def get_projects
     response = get_response_full('/v2/cursus/42/projects')
     projects = []
-    updated, errors = 0, 0
+    updated = 0
 
     response[:data].each do |data|
-      project = Project.find_or_initialize_by(id: data['id'])
-      project.name = data['name']
-      project.slug = data['slug']
+      projects << Project.new(id: data['id'], name: data['name'], slug: data['slug'])
 
-      if project.new_record?
-        projects << project
-      else
-        if project.save
-          updated += 1
-        else
-          errors += 1
-        end
+      puts '== ' + data['name'].ljust(47, '=')
+      get_user_projects(data['id'], data['slug'])
+    end
+
+    projects_exists = Project.select(:id, :name, :slug).where(id: projects.map(&:id))
+
+    (projects & projects_exists).zip(projects_exists).each do |data, project|
+      project.assign_attributes(data.serializable_hash(only: [:name, :slug]))
+
+      if project.changed?
+        project.save
+        updated += 1
       end
     end
 
-    puts 'Update projects: ' + updated.to_s + ' (' + errors.to_s + ')'
-    insert = Project.import projects
-    puts 'Add projects:    ' + insert.num_inserts.to_s + ' (' + (projects.count - insert.num_inserts).to_s + ')'
+    puts '=' * 50
+    puts 'Update projects: ' + updated.to_s + ' / ' + projects_exists.length.to_s
+    Project.import (projects - projects_exists)
+    puts 'Adds projects:   ' + (projects.length - projects_exists.length).to_s
   end
 
-  def get_user_projects
+  def get_user_projects(project_id, project_slug)
+    response = get_response_full('/v2/projects/' + project_slug + '/projects_users')
     user_projects = []
-    updated, errors = 0, 0
+    updated = 0
 
-    Project.all.each do |project|
-      response = get_response_full('/v2/projects/' + project.slug + '/projects_users')
+    response[:data].each do |data|
+      user_projects << UserProject.new(id: data['id'], user_id: data['user']['id'], project_id: project_id,
+                                   occurrence: data['occurrence'], final_mark: data['final_mark'])
+    end
 
-      response[:data].each do |data|
-        user_project = UserProject.find_or_initialize_by(id: data['id']) do |user_project|
-          user_project.user_id = data['user']['id']
-          user_project.project_id = project.id
-          user_project.occurrence = data['occurrence']
-        end
-        user_project.final_mark = data['final_mark']
+    user_projects_exists = UserProject.select(:id, :final_mark).where(id: user_projects.map(&:id))
 
-        if user_project.new_record?
-          user_projects << user_project unless user_projects.include?(user_project)
-        else
-          if user_project.save
-            updated += 1
-          else
-            errors += 1
-          end
-        end
+    (user_projects & user_projects_exists).zip(user_projects_exists).each do |data, user_project|
+      user_project.assign_attributes(data.serializable_hash(only: [:final_mark]))
+
+      if user_project.changed?
+        user_project.save
+        updated += 1
       end
     end
 
-    puts 'Update user projects: ' + updated.to_s + ' (' + errors.to_s + ')'
-    insert = UserProject.import user_projects
-    puts 'Add user projects:    ' + insert.num_inserts.to_s + ' (' + (user_projects.count - insert.num_inserts).to_s + ')'
+    puts 'Update user projects: ' + updated.to_s + ' / ' + user_projects_exists.length.to_s
+    UserProject.import (user_projects - user_projects_exists)
+    puts 'Adds user projects:   ' + (user_projects.length - user_projects_exists.length).to_s
   end
 
   def get_users
@@ -164,7 +156,7 @@ namespace :cron do
   end
 
   def get_seeding(params = {})
-    puts '== 1 =============================================' unless params[:page]
+    puts '== ' + (params[:page] || 1).to_s.ljust(47, '=')
     response = get_response('/v2/locations', params)
     adds_locations(response[:data])
 
@@ -203,7 +195,7 @@ namespace :cron do
 
     puts 'Update user history: ' + updated.to_s + ' / ' + stories_exists.length.to_s
     UserHistory.import (stories - stories_exists)
-    puts 'Add users history:   ' + (stories.length - stories_exists.length).to_s
+    puts 'Adds users history:   ' + (stories.length - stories_exists.length).to_s
 
     stories
   end
