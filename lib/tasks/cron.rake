@@ -46,10 +46,12 @@ namespace :cron do
     uid = Rails.application.secrets.api_born2code_uid
     secret = Rails.application.secrets.api_born2code_secret
     client = OAuth2::Client.new(uid, secret, site: 'https://api.intra.42.fr', ssl: { verify: false })
-    @token = client.client_credentials.get_token
+    @client_credentials = client.client_credentials
+    @token = @client_credentials.get_token
   end
 
   def get_response(path, params = {})
+    @token = @client_credentials.get_token if @token.expired?
     response = @token.get(path, params: params)
     pagination = response.headers['link'].split(', ').map do |p|
       link, params = p.split('; ')
