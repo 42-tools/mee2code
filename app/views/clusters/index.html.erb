@@ -50,8 +50,9 @@
                 </thead>
                 <tbody>
                   <% @maps[index].each_with_index do |row_value, row_index| %>
+                  <% row_index = @maps[index].length - row_index %>
                   <tr>
-                    <td><%= row_index + 1 %></td>
+                    <td><%= row_index %></td>
                     <% row_value.each_with_index do |station_value, station_index| %>
                     <% if station_value == 'x' || station_value == '-' %>
                     <% class_name = ['station'];
@@ -65,19 +66,19 @@
                     %>
                     <% if station_value == 'x' %>
                     <% parent_data, childen_data = {}, {}
-                    if client = @data[index][:users]["e#{index + 1}r#{row_index + 1}p#{station_index + 1}"]
+                    if client = @data[index][:users]["e#{index + 1}r#{row_index}p#{station_index + 1}"]
                       class_name << 'station-success'
                       parent_data = { login: client.login, 'last-activity': '', avatar: 'https://cdn.intra.42.fr/userprofil/' + client.login + '.jpg' };
                       childen_data = { title: client.display_name || '', placement: 'auto' };
                     else
                       class_name << 'station-default'
                     end %>
-                    <td id="e<%= index + 1 %>r<%= row_index + 1 %>p<%= station_index + 1 %>"<%= parent_data.map { |name, value| 'data-' + name.to_s + '="' + value + '"' }.join(' ').html_safe %>>
+                    <td id="e<%= index + 1 %>r<%= row_index %>p<%= station_index + 1 %>"<%= parent_data.map { |name, value| 'data-' + name.to_s + '="' + value + '"' }.join(' ').html_safe %>>
                       <div class="<%= class_name.join ' ' %>"<%= childen_data.map { |name, value| 'data-' + name.to_s + '="' + value + '"' }.join(' ').html_safe %>><span class="glyphicon glyphicon-phone"></span>&nbsp;</div>
                     </td>
                     <% elsif station_value == '-' %>
                     <% class_name << 'station-default' %>
-                    <td id="e<%= index + 1 %>r<%= row_index + 1 %>p<%= station_index + 1 %>">
+                    <td id="e<%= index + 1 %>r<%= row_index %>p<%= station_index + 1 %>">
                       <div class="<%= class_name.join ' ' %>">&nbsp;</div>
                     </td>
                     <% end %>

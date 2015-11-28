@@ -220,25 +220,25 @@ $(function() {
 			content += '<div class="station-popover"><figure><img class="img-thumbnail" width="112" height="150" src="' + avatar + '" alt="' + name + '"></figure><div class="info">';
 			content += '<p><span>Login</span>: <br />' + login + '</p>';
 			content += '<p><span>Location</span>: <br />' + location + '</p>';
-			content += '<p><span>Jabber</span>: <br />';
+			// content += '<p><span>Jabber</span>: <br />';
 
-			if (client.hasClass('jabber-available') || client.hasClass('jabber-chat'))
-				content += 'Disponible';
-			else if (client.hasClass('jabber-dnd'))
-				content += 'Occupé';
-			else if (client.hasClass('jabber-away'))
-				content += 'Absent';
-			else if (client.hasClass('jabber-xa'))
-				content += 'Longue absence';
-			else if (client.hasClass('jabber-unavailable'))
-				content += 'Indisponible';
-			else
-				content += 'Inconnue';
+			// if (client.hasClass('jabber-available') || client.hasClass('jabber-chat'))
+			// 	content += 'Disponible';
+			// else if (client.hasClass('jabber-dnd'))
+			// 	content += 'Occupé';
+			// else if (client.hasClass('jabber-away'))
+			// 	content += 'Absent';
+			// else if (client.hasClass('jabber-xa'))
+			// 	content += 'Longue absence';
+			// else if (client.hasClass('jabber-unavailable'))
+			// 	content += 'Indisponible';
+			// else
+			// 	content += 'Inconnue';
 
-			content += '</p>';
+			// content += '</p>';
 
-			if (client.hasClass('jabber-dnd') || client.hasClass('jabber-away') || client.hasClass('jabber-xa'))
-				content += '<p><span>Dernière activité</span>: <br />' + last_activity + '</p>';
+			// if (client.hasClass('jabber-dnd') || client.hasClass('jabber-away') || client.hasClass('jabber-xa'))
+			// 	content += '<p><span>Dernière activité</span>: <br />' + last_activity + '</p>';
 
 			content += '</div></div>';
 			return content;

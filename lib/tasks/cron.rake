@@ -73,7 +73,7 @@ namespace :cron do
     response[:data].each do |data|
       projects << Project.new(id: data['id'], name: data['name'], slug: data['slug'])
 
-      puts '== ' + data['name'].ljust(47, '=')
+      puts '== ' + (data['name'] + ' ').ljust(47, '=')
       get_user_projects(data['id'], data['slug'])
     end
 
@@ -141,9 +141,9 @@ namespace :cron do
     end
 
     insert = User.import users
-    puts 'Add users:           ' + insert.num_inserts.to_s + ' (' + (users.count - insert.num_inserts).to_s + ')'
+    puts 'Add users:      ' + insert.num_inserts.to_s + ' (' + (users.count - insert.num_inserts).to_s + ')'
     insert = UserInfoShort.import user_info_shorts
-    puts 'Add users info:      ' + insert.num_inserts.to_s + ' (' + (user_info_shorts.count - insert.num_inserts).to_s + ')'
+    puts 'Add users info: ' + insert.num_inserts.to_s + ' (' + (user_info_shorts.count - insert.num_inserts).to_s + ')'
   end
 
   def get_user_info_shorts
@@ -155,8 +155,8 @@ namespace :cron do
     end
   end
 
-  def get_seeding(params = {})
-    puts '== ' + (params[:page] || 1).to_s.ljust(47, '=')
+  def get_seeding(params = {}, first = true)
+    puts '== ' + ((params[:page] || 1).to_s + ' ').ljust(47, '=') if first
     response = get_response('/v2/locations', params)
     adds_locations(response[:data])
 
@@ -164,7 +164,7 @@ namespace :cron do
       params[:page] = Rack::Utils.parse_nested_query(URI.parse(response[:pagination]['next']).query)['page']
       max_page = Rack::Utils.parse_nested_query(URI.parse(response[:pagination]['last']).query)['page']
       puts '== ' + (params[:page] + ' / ' + max_page + ' ').ljust(47, '=')
-      get_seeding(params)
+      get_seeding(params, false)
     end
   end
 
@@ -193,9 +193,9 @@ namespace :cron do
       end
     end
 
-    puts 'Update user history: ' + updated.to_s + ' / ' + stories_exists.length.to_s
+    puts 'Update user histories: ' + updated.to_s + ' / ' + stories_exists.length.to_s
     UserHistory.import (stories - stories_exists)
-    puts 'Adds users history:   ' + (stories.length - stories_exists.length).to_s
+    puts 'Adds user histories:   ' + (stories.length - stories_exists.length).to_s
 
     stories
   end
