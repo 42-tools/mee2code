@@ -69,7 +69,7 @@ class ClustersController < ApplicationController
     users = UserInfoShort.all.map { |info| [info.user_id, info] }.to_h
 
     @maps = base.map.with_index do |cluster_value, cluster_index|
-      histories = UserHistory.logged.cluster(cluster_index + 1).map { |history| [history.host, users[history.user_id]] }.to_h
+      histories = UserHistory.logged.cluster(cluster_index + 1).map { |history| [history.host, users[history.user_id] || UserInfoShort.new] }.to_h
       @data[cluster_index][:slots] -= histories.length
 
       cluster_value.map.with_index do |row_value, row_index|
@@ -102,9 +102,12 @@ class ClustersController < ApplicationController
 
             if user
               class_name << 'station-success'
-              data = user.serializable_hash(only: [:login])
-              data.merge!({ title: user.display_name, placement: 'auto',
-                            avatar: 'https://cdn.intra.42.fr/userprofil/' + user.login + '.jpg' })
+
+              unless user.new_record?
+                data = user.serializable_hash(only: [:login])
+                data.merge!({ title: user.display_name, placement: 'auto',
+                              avatar: 'https://cdn.intra.42.fr/userprofil/' + user.login + '.jpg' })
+              end
             else
               class_name << 'station-default'
             end
