@@ -202,20 +202,20 @@ function showError(msg) {
 $(document).disableSelection();
 $(function() {
 	$('table').popover({
-		selector: 'td[data-login] > div',
+		selector: 'td > div[data-login]',
 		trigger: 'hover',
 		html: true,
 		content: function() {
 			var content = '';
 			var client = $(this);
 			var parent = client.parent();					
-			var login = parent.data('login');
+			var login = client.data('login');
 			var name = client.data('title');
-			var avatar = parent.data('avatar');
+			var avatar = client.data('avatar');
 			var location = parent.attr('id');
-			var last_activity = parent.data('last-activity');
-			var month = parent.data('month');
-			var years = parent.data('years');
+			var last_activity = client.data('last-activity');
+			var month = client.data('month');
+			var years = client.data('years');
 
 			content += '<div class="station-popover"><figure><img class="img-thumbnail" width="112" height="150" src="' + avatar + '" alt="' + name + '"></figure><div class="info">';
 			content += '<p><span>Login</span>: <br />' + login + '</p>';
