@@ -1,8 +1,8 @@
 require 'oauth2'
 
-namespace :cron do
+namespace :crawler do
   desc 'TODO'
-  task crawler: :environment do |task, args|
+  task locations: :environment do |task, args|
     set_token
 
     oldest_location = get_locations({ active: true })
@@ -19,15 +19,17 @@ namespace :cron do
     get_locations({ since: since.begin_at.strftime('%FT%T%:z') }) if since
   end
 
-  task seed: :environment do |task, args|
+  task :seed, [:page] do |task, args|
     set_token
-    get_seeding
+
+    if page = get_seeding(args)
+      get_seeding({ page: page })
+    end
   end
 
   task users: :environment do |task, args|
     set_token
     get_users
-    get_user_info_shorts
   end
 
   task projects: :environment do |task, args|
@@ -46,8 +48,16 @@ namespace :cron do
   end
 
   def get_response(path, params = {})
-    @token = @client_credentials.get_token if @token.expired?
-    response = @token.get(path, params: params)
+    @token = @client_credentials.get_token if @token.nil? || @token.expired?
+
+    begin
+      response = @token.get(path, params: params)
+    rescue OAuth2::Error
+      puts '== OAuth2Error ==================================='
+      @token = @client_credentials.get_token
+      response = @token.get(path, params: params)
+    end
+
     pagination = response.headers['link'].split(', ').map do |p|
       link, params = p.split('; ')
       rel = Rack::Utils.parse_nested_query(params.gsub('"', ''))['rel']
@@ -164,8 +174,16 @@ namespace :cron do
       params[:page] = Rack::Utils.parse_nested_query(URI.parse(response[:pagination]['next']).query)['page']
       max_page = Rack::Utils.parse_nested_query(URI.parse(response[:pagination]['last']).query)['page']
       puts '== ' + (params[:page] + ' / ' + max_page + ' ').ljust(47, '=')
-      get_seeding(params, false)
+
+      begin
+        return get_seeding(params, false)
+      rescue SystemStackError
+        puts '== SystemStackError =============================='
+        return params[:page]
+      end
     end
+
+    return false
   end
 
   def get_locations(params = {})

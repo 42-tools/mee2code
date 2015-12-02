@@ -6,4 +6,6 @@
 #   cities = City.create([{ name: 'Chicago' }, { name: 'Copenhagen' }])
 #   Mayor.create(name: 'Emanuel', city: cities.first)
 
-Rake::Task['cron:seed'].invoke()
+Rake::Task['crawler:users'].invoke()
+Rake::Task['crawler:projects'].invoke()
+Rake::Task['crawler:seed'].invoke()
