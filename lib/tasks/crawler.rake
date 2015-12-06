@@ -87,9 +87,9 @@ namespace :crawler do
       get_user_projects(data['id'], data['slug'])
     end
 
-    projects_exists = Project.select(:id, :name, :slug).where(id: projects.map(&:id))
+    projects_exists = Project.select(:id, :name, :slug).where(id: projects.map(&:id)).order(:id)
 
-    (projects & projects_exists).zip(projects_exists).each do |data, project|
+    (projects & projects_exists).sort.zip(projects_exists).each do |data, project|
       project.assign_attributes(data.serializable_hash(only: [:name, :slug]))
 
       if project.changed?
@@ -114,9 +114,9 @@ namespace :crawler do
                                    occurrence: data['occurrence'], final_mark: data['final_mark'])
     end
 
-    user_projects_exists = UserProject.select(:id, :final_mark).where(id: user_projects.map(&:id))
+    user_projects_exists = UserProject.select(:id, :final_mark).where(id: user_projects.map(&:id)).order(:id)
 
-    (user_projects & user_projects_exists).zip(user_projects_exists).each do |data, user_project|
+    (user_projects & user_projects_exists).sort.zip(user_projects_exists).each do |data, user_project|
       user_project.assign_attributes(data.serializable_hash(only: [:final_mark]))
 
       if user_project.changed?
@@ -133,36 +133,52 @@ namespace :crawler do
   def get_users
     response = get_response_full('/v2/cursus/42/users')
     users = []
-    user_info_shorts = []
+    user_infos = []
+    updated = 0
 
     response[:data].each do |data|
-      user = User.find_or_initialize_by(id: data['id']) do |user|
-        user.email = data['login'] + '@student.42.fr'
-        user.password = Devise.friendly_token[0, 20]
-      end
-
-      users << user if user.new_record?
-
-      user_info_short = UserInfoShort.find_or_initialize_by(user_id: data['id']) do |user_info_short|
-        user_info_short.login = data['login']
-      end
-
-      user_info_shorts << user_info_short if user_info_short.new_record?
+      user = get_response('/v2/users/' + data['id'].to_s)[:data]
+      puts user['login'] + ' à une adresse mail vide' unless user['email']
+      user['email'] = user['login'] + '@42.fr' unless user['email']
+      users << User.new(id: user['id'], email: user['email'], password: Devise.friendly_token[0, 20])
+      user_infos << UserInfoShort.new(user_id: user['id'], login: user['login'], display_name: user['displayname'])
     end
 
-    insert = User.import users
-    puts 'Add users:      ' + insert.num_inserts.to_s + ' (' + (users.count - insert.num_inserts).to_s + ')'
-    insert = UserInfoShort.import user_info_shorts
-    puts 'Add users info: ' + insert.num_inserts.to_s + ' (' + (user_info_shorts.count - insert.num_inserts).to_s + ')'
-  end
+    users_exists = User.select(:id, :email).where(id: users.map(&:id)).order(:id)
 
-  def get_user_info_shorts
-    UserInfoShort.where(display_name: nil).each do |user_info_short|
-      response = get_response('/v2/users/' + user_info_short.user_id.to_s)
-      data = response[:data]
-      user_info_short.user.update(email: data['email']) if data['email']
-      user_info_short.update(login: data['login'], display_name: data['displayname'])
+    (users & users_exists).sort.zip(users_exists).each do |data, user|
+      user.assign_attributes(data.serializable_hash(only: [:email]))
+
+      if user.changed?
+        begin
+          user.save
+          updated += 1
+        rescue ActiveRecord::RecordNotUnique
+          puts 'Adresse mail déjà attribué (data: ' + data.email.split('@')[0] + '[' + data.id.to_s + '], user: ' + user.email.split('@')[0] + '[' + user.id.to_s + '])'
+        end
+      end
     end
+
+    puts 'Update users: ' + updated.to_s + ' / ' + users_exists.length.to_s
+    User.import (users - users_exists)
+    puts 'Adds users:   ' + (users.length - users_exists.length).to_s
+
+    updated = 0
+    user_infos_exists = UserInfoShort.select(:id, :user_id, :login, :display_name).where(user_id: user_infos.map(&:user_id)).order(:user_id)
+    user_infos_exists_ids = user_infos_exists.map(&:user_id)
+
+    user_infos.select { |u| user_infos_exists_ids.include?(u.user_id) }.sort { |a, b| a.user_id <=> b.user_id }.zip(user_infos_exists).each do |data, user_info|
+      user_info.assign_attributes(data.serializable_hash(only: [:login, :display_name]))
+
+      if user_info.changed?
+        user_info.save
+        updated += 1
+      end
+    end
+
+    puts 'Update users info: ' + updated.to_s + ' / ' + user_infos_exists.length.to_s
+    UserInfoShort.import user_infos.reject { |u| user_infos_exists_ids.include?(u.user_id) }
+    puts 'Adds users info:   ' + (user_infos.length - user_infos_exists.length).to_s
   end
 
   def get_seeding(params = {}, first = true)
@@ -200,9 +216,9 @@ namespace :crawler do
                                  host: data['host'], end_at: data['end_at'], verified: data['end_at'] != nil)
     end
 
-    stories_exists = UserHistory.select(:id, :end_at, :verified).where(id: stories.map(&:id))
+    stories_exists = UserHistory.select(:id, :end_at, :verified).where(id: stories.map(&:id)).order(:id)
 
-    (stories & stories_exists).zip(stories_exists).each do |data, history|
+    (stories & stories_exists).sort.zip(stories_exists).each do |data, history|
       history.assign_attributes(data.serializable_hash(only: [:end_at, :verified]))
 
       if history.changed?
