@@ -4,15 +4,7 @@ Rails.application.routes.draw do
   get 'cluster/:index.json', to: 'clusters#get', as: 'cluster'
   get 'users/histories', to: 'users#histories'
 
-  devise_scope :user do
-    authenticated :user do
-      root 'clusters#index', as: :authenticated_root
-    end
-
-    unauthenticated do
-      root 'users/sessions#new', as: :unauthenticated_root
-    end
-  end
+  root 'clusters#index'
 
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".

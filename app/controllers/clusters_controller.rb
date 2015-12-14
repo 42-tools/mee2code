@@ -67,9 +67,10 @@ class ClustersController < ApplicationController
     end
 
     users = UserInfoShort.all.map { |info| [info.user_id, info] }.to_h
+    users.default = UserInfoShort.new
 
     @maps = base.map.with_index do |cluster_value, cluster_index|
-      histories = UserHistory.logged.cluster(cluster_index + 1).map { |history| [history.host, users[history.user_id] || UserInfoShort.new] }.to_h
+      histories = UserHistory.logged.cluster(cluster_index + 1).map { |history| [history.host, users[history.user_id]] }.to_h
       @data[cluster_index][:slots] -= histories.length
 
       cluster_value.map.with_index do |row_value, row_index|
