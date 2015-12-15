@@ -1,9 +1,13 @@
 //= require jquery
+//= require jquery.turbolinks
 //= require jquery_ujs
-//= require jquery-ui
-//= require bootstrap-sprockets
+//= require jquery-ui/core
+//= require bootstrap/alert
+//= require bootstrap/dropdown
+//= require bootstrap/tab
+//= require bootstrap/tooltip
+//= require bootstrap/popover
 //= require turbolinks
-//= require_tree .
 
 (function($, window) {
 	$.fn.contextMenu = function (settings) {
