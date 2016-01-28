@@ -19,11 +19,16 @@ namespace :crawler do
     get_locations({ since: since.begin_at.strftime('%FT%T%:z') }) if since
   end
 
-  task :seed, [:page] do |task, args|
+  task seed: :environment do |task, args|
     set_token
 
-    if page = get_seeding(args)
-      get_seeding({ page: page })
+    puts '== 1 '.ljust(47, '=')
+
+    params = get_seeding
+
+    while params[:next] do
+      puts '== ' + (params[:next] + ' / ' + params[:max] + ' ').ljust(47, '=')
+      params = get_seeding({ page: params[:next] })
     end
   end
 
@@ -181,25 +186,16 @@ namespace :crawler do
     puts 'Adds users info:   ' + (user_infos.length - user_infos_exists.length).to_s
   end
 
-  def get_seeding(params = {}, first = true)
-    puts '== ' + ((params[:page] || 1).to_s + ' ').ljust(47, '=') if first
+  def get_seeding(params = {})
     response = get_response('/v2/locations', params)
     adds_locations(response[:data])
 
     if response[:pagination]['next']
-      params[:page] = Rack::Utils.parse_nested_query(URI.parse(response[:pagination]['next']).query)['page']
+      next_page = Rack::Utils.parse_nested_query(URI.parse(response[:pagination]['next']).query)['page']
       max_page = Rack::Utils.parse_nested_query(URI.parse(response[:pagination]['last']).query)['page']
-      puts '== ' + (params[:page] + ' / ' + max_page + ' ').ljust(47, '=')
-
-      begin
-        return get_seeding(params, false)
-      rescue SystemStackError
-        puts '== SystemStackError =============================='
-        return params[:page]
-      end
     end
 
-    return false
+    { next: next_page || false, max: max_page || false }
   end
 
   def get_locations(params = {})
