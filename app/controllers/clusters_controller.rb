@@ -50,7 +50,7 @@ class ClustersController < ApplicationController
     @data = base.map do |cluster_value|
       rows_length = cluster_value.map { |r| r.inject(0) { |n, s| n + (s == 'x' ? 1 : 0) } }
 
-      { slots: rows_length.reduce(&:+) }
+      { slots: rows_length.reduce(&:+), percent: 0, charts: [] }
     end
 
     @columns = base.map do |cluster_value|
@@ -70,7 +70,9 @@ class ClustersController < ApplicationController
     users.default = UserInfoShort.new
 
     @maps = base.map.with_index do |cluster_value, cluster_index|
+      @data[cluster_index][:charts] = UserHistory.cluster(cluster_index + 1).users_by_hour
       histories = UserHistory.logged.cluster(cluster_index + 1).map { |history| [history.host, users[history.user_id]] }.to_h
+      @data[cluster_index][:percent] = histories.length.to_f / @data[cluster_index][:slots] * 100
       @data[cluster_index][:slots] -= histories.length
 
       cluster_value.map.with_index do |row_value, row_index|
