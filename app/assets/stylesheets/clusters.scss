@@ -1,0 +1,16 @@
+body > div.navbar {
+  margin-top: 101px;
+  z-index: 1;
+}
+
+body > div:not(.navbar) .container-fluid:first-child {
+  margin-top: 195px;
+}
+
+.navbar-nav > li > .tooltip {
+  width: 150px;
+}
+
+.charts {
+  height: 400px;
+}

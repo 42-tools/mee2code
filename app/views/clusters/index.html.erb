@@ -1,37 +1,41 @@
-  <div class="container-fluid">
-    <div class="row">
-      <div class="col-sm-3 col-md-2 sidebar">
-        <ul class="nav nav-sidebar" role="tablist">
+<% content_for :javascripts do %>
+  <%= javascript_include_tag 'clusters', data: { turbolinks_track: true } %>
+<% end %>
+<% content_for :stylesheets do %>
+  <%= stylesheet_link_tag    'clusters', media: 'all', data: { turbolinks_track: true } %>
+<% end %>
+  <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container-fluid">
+      <div class="collapse navbar-collapse">
+        <ul class="nav navbar-nav" role="tablist">
           <% @names.each_with_index do |name, index| %>
           <li<%= ' class=active' if index.zero? %>>
-            <a href="#cluster<%= index + 1 %>" role="tab" data-toggle="tab">Cluster <%= index + 1 %> (<%= name %>)</a>
-            <ul class="nav nav-subsidebar">
-              <li><span><%= pluralize(@data[index][:slots], 'place', 'places') %> disponible</span></li>
-            </ul>
+            <a href="#cluster<%= index + 1 %>" role="tab" data-toggle="tab" data-placement="bottom" title="<%= pluralize(@data[index][:slots], 'place', 'places') %> disponible"><%= name %></a>
           </li>
           <% end %>
         </ul>
       </div>
-      <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main-content">
-        <%= render 'layouts/notice' %>
-        <!--div class="alert alert-info alert-dismissible" role="alert">
-          <strong class="text-uppercase">Nous développons actuellement en direct, ceci pourrait provoquer quelques dysfonctionnements !</strong>
-        </div-->
-        <!--div class="alert alert-success alert-dismissible" role="alert">
-          <strong class="text-uppercase">Le système pour signaler tout défaut sur un iMac est désormais fonctionnel !</strong>
-        </div-->
-        <!--div class="alert alert-danger alert-dismissible" role="alert">
-          <strong class="text-uppercase">Suite à un problème technique les données ne sont plus mise à jour, il sera réglé sous peu.</strong>
-        </div-->
-        <div id="myAlert" class="alert alert-dismissible hide" role="alert">
-          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-          <span></span>
-        </div>
-        <div class="tab-content">
-          <% @names.each_with_index do |name, index| %>
-          <div class="tab-pane fade<%= ' in active' if index.zero? %>" id="cluster<%= index + 1 %>">
-            <div class="page-header">
-              <h1>Cluster <%= index + 1 %> (<%= name %>)</h1>
+    </div>
+  </div>
+  <div class="tab-content">
+    <% @names.each_with_index do |name, index| %>
+    <div role="tabpanel" class="tab-pane fade<%= ' in active' if index.zero? %>" id="cluster<%= index + 1 %>">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-xs-12">
+            <%= render 'layouts/notice' %>
+            <!--div class="alert alert-info alert-dismissible" role="alert">
+              <strong class="text-uppercase">Nous développons actuellement en direct, ceci pourrait provoquer quelques dysfonctionnements !</strong>
+            </div-->
+            <!--div class="alert alert-success alert-dismissible" role="alert">
+              <strong class="text-uppercase">Le système pour signaler tout défaut sur un iMac est désormais fonctionnel !</strong>
+            </div-->
+            <!--div class="alert alert-danger alert-dismissible" role="alert">
+              <strong class="text-uppercase">Suite à un problème technique les données ne sont plus mise à jour, il sera réglé sous peu.</strong>
+            </div-->
+            <div id="myAlert" class="alert alert-dismissible hide" role="alert">
+              <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+              <span></span>
             </div>
             <div class="table table-responsive table-cluster">
               <table class="table">
@@ -64,8 +68,8 @@
               </table>
             </div>
           </div>
-          <% end %>
         </div>
       </div>
     </div>
+    <% end %>
   </div>
