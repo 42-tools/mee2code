@@ -70,7 +70,7 @@ class ClustersController < ApplicationController
     users.default = UserInfoShort.new
 
     @maps = base.map.with_index do |cluster_value, cluster_index|
-      @data[cluster_index][:charts] = UserHistory.cluster(cluster_index + 1).users_by_hour
+      @data[cluster_index][:charts] = UserHistory.cluster(cluster_index + 1).chart
       histories = UserHistory.logged.cluster(cluster_index + 1).map { |history| [history.host, users[history.user_id]] }.to_h
       @data[cluster_index][:percent] = histories.length.to_f / @data[cluster_index][:slots] * 100
       @data[cluster_index][:slots] -= histories.length

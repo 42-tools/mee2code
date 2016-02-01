@@ -25,7 +25,7 @@
             <div class="page-header">
               <h1>Étudiants connectés par heure</h1>
               <p>
-                <%= Date.current.strftime('%e %B %Y') %>
+                <%= Date.current.strftime(t'date.formats.long') %>
               </p>
             </div>
           <div class="charts" data-cluster="<%= index + 1 %>"></div>

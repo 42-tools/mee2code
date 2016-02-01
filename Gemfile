@@ -43,6 +43,8 @@ gem 'puma'
 # Use Capistrano for deployment
 # gem 'capistrano-rails', group: :development
 
+gem 'pry-rails'
+
 group :production do
   # Use postgresql as the database for Active Record
   gem 'pg'
@@ -62,5 +64,7 @@ group :development do
 
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
   gem 'spring'
+
+  gem 'better_errors'
 end
 
