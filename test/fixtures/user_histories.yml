@@ -1,13 +1,10 @@
-# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
-
-one:
-  login: MyString
-  location: MyString
-  date_begin: 2015-07-19 17:28:38
-  date_end: 2015-07-19 17:28:38
-
-two:
-  login: MyString
-  location: MyString
-  date_begin: 2015-07-19 17:28:38
-  date_end: 2015-07-19 17:28:38
+<% 1.upto(10) do |u| %>
+<% 1.upto(100) do |h| %>
+user_hostory_<%= u %>_<%= h %>:
+  user: user_<%= u %>
+  host: MyString
+  begin_at: 2015-07-19 17:28:38
+  end_at: 2015-07-19 18:28:38
+  verified: true
+<% end %>
+<% end %>

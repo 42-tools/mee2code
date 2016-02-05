@@ -1,9 +1,5 @@
-# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
-
-one:
+<% 1.upto(10) do |p| %>
+project_<%= p %>:
   name: MyString
   slug: MyString
-
-two:
-  name: MyString
-  slug: MyString
+<% end %>
