@@ -5,7 +5,7 @@ namespace :crawler do
   task locations: :environment do |task, args|
     set_token
 
-    oldest_location = get_locations({ active: true })
+    oldest_location = get_locations({ filter: 'active:true' })
 
     UserHistory.where(end_at: nil).where.not(id: oldest_location).update_all(end_at: Time.now) unless oldest_location.empty?
   end
@@ -16,7 +16,7 @@ namespace :crawler do
     arel = UserHistory.arel_table
     since = UserHistory.select(:begin_at).order(:begin_at).where(arel[:verified].eq(nil).or(arel[:verified].eq(false))).first
 
-    get_locations({ since: since.begin_at.strftime('%FT%T%:z') }) if since
+    get_locations({ range: 'begin_at:' + since.begin_at.strftime('%FT%T%:z') + ',' + Time.current.strftime('%FT%T%:z') }) if since
   end
 
   task seed: :environment do |task, args|
@@ -89,7 +89,7 @@ namespace :crawler do
       projects << Project.new(id: data['id'], name: data['name'], slug: data['slug'])
 
       puts '== ' + (data['name'] + ' ').ljust(47, '=')
-      get_user_projects(data['id'], data['slug'])
+      get_user_projects(data['project_users_url'], data['id'])
     end
 
     projects_exists = Project.select(:id, :name, :slug).where(id: projects.map(&:id)).order(:id)
@@ -109,8 +109,8 @@ namespace :crawler do
     puts 'Adds projects:   ' + (projects.length - projects_exists.length).to_s
   end
 
-  def get_user_projects(project_id, project_slug)
-    response = get_response_full('/v2/projects/' + project_slug + '/projects_users')
+  def get_user_projects(project_users_url, project_id)
+    response = get_response_full(project_users_url)
     user_projects = []
     updated = 0
 
@@ -142,7 +142,7 @@ namespace :crawler do
     updated = 0
 
     response[:data].each do |data|
-      user = get_response('/v2/users/' + data['id'].to_s)[:data]
+      user = get_response(data['url'])[:data]
       puts user['login'] + ' à une adresse mail vide' unless user['email']
       user['email'] = user['login'] + '@42.fr' unless user['email']
       users << User.new(id: user['id'], email: user['email'], password: Devise.friendly_token[0, 20])
