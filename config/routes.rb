@@ -5,4 +5,7 @@ Rails.application.routes.draw do
   get 'users/histories', to: 'users#histories'
 
   root 'clusters#index'
+
+  # Serve websocket cable requests in-process
+  # mount ActionCable.server => '/cable'
 end
