@@ -3,6 +3,10 @@ class User < ActiveRecord::Base
   has_many :user_histories, dependent: :destroy
   has_many :user_projects, dependent: :destroy
   has_many :projects, through: :user_projects
+  has_many :user_friends, dependent: :destroy
+  has_many :friends, through: :user_friends
+
+  def last_connection() user_histories.last end
 
   devise :database_authenticatable, :trackable, :omniauthable, omniauth_providers: [:born2code]
 

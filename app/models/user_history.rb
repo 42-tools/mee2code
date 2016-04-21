@@ -14,7 +14,7 @@ class UserHistory < ActiveRecord::Base
   scope :post, -> (index) { where('host LIKE ?', %(%p#{index})) }
 
   def self.chart(from_time = Date.current, to_time = from_time.tomorrow)
-    chart = (0..(from_time == Date.current ? Time.current.hour : 23)).map { |num| [num, 0] }.to_h
+    chart = (0..(from_time == Date.current ? Time.current.hour : 23)).map { |num| [num, []] }.to_h
     from_time = from_time.to_time
     to_time = to_time.to_time
 

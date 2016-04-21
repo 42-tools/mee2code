@@ -1,0 +1,34 @@
+<% content_for :javascripts do %>
+  <%= javascript_include_tag 'users/friends', data: { turbolinks_track: true } %>
+<% end %>
+<% content_for :stylesheets do %>
+  <%= stylesheet_link_tag    'users/friends', media: 'all', data: { turbolinks_track: true } %>
+<% end %>
+<div>
+  <div class="container-fluid">
+    <div class="row">
+      <div class="page-header">
+        <h1>Mes amis</h1>
+      </div>
+      <div class="col-xs-12">
+        <% @friends.each do |friend| %>
+        <div class="col-xs-3">
+          <div class="friend-block">
+          <%= friend.user_info_short.login %>
+          <% if friend.last_connection %>
+            <% if friend.last_connection.end_at %>
+            <span class="label label-default"><%= l(friend.last_connection.end_at, format: '%A %e %B %Y %H:%M:%S') %></span>
+            <% else %>
+            <span class="label label-success">Actif</span> - <span class="label label-default"><%= friend.last_connection.host.upcase %></span>
+            <% end %>
+          <% else %>
+            <span class="label label-default">-</span>
+          <% end %>
+          <%= link_to destroy_friend_path(friend), method: :delete, remote: true, class: 'btn btn-danger destroy-friend' do %><span class="glyphicon glyphicon-trash" aria-hidden="true"></span><% end %>
+          </div>
+        </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
