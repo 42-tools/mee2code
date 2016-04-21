@@ -38,6 +38,8 @@ class ClustersController < ApplicationController
       end.map! { |k, v| v == 'x' || v == '-' ? k.to_s : '' }
     end
 
+    friends = user_signed_in? ? current_user.user_friends.pluck(:friend_id) : []
+
     @maps = base.map.with_index do |cluster_value, cluster_index|
       user_history = UserHistory.campus(@campus_id.to_s).cluster(cluster_index + 1)
       @data[cluster_index][:charts] = user_history.chart
@@ -74,7 +76,7 @@ class ClustersController < ApplicationController
             end
 
             if user
-              class_name << (user.piscine? ? 'station-warning' : 'station-success')
+              class_name << (friends.include?(user.user_id) ? 'station-friend' : (user.piscine? ? 'station-warning' : 'station-success'))
 
               unless user.new_record?
                 data = { login: user.login, title: user.display_name, placement: 'auto', avatar: user.image_url }

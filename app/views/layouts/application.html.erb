@@ -24,6 +24,7 @@
     .station-success {background-color: #dff0d8; border-color: #d6e9c6 !important; color: #3c763d}
     .station-warning {background-color: #fcf8e3; border-color: #faebcc !important; color: #8a6d3b}
     .station-danger {background-color: #f2dede; border-color: #ebccd1 !important; color: #a94442}
+    .station-friend {background-color: #d9edf7; border-color: #bce8f1 !important; color: #31708f}
     .station-default {background: #f5f5f5}
     .jabber-me {background: #d9edf7}
     .station-obstacle {background: #d7d7d7}
@@ -33,7 +34,7 @@
     .space {width: 25px}
     .table-cluster td:first-child {font-weight: bold; width: 25px}
     .table-cluster th {border-bottom: 0 !important}
-    .table-cluster th, td {border-bottom: 10px solid transparent; text-align: center; width: 30px}
+    .table-cluster th, .table-cluster td {border-bottom: 10px solid transparent; text-align: center; width: 30px}
     .table-cluster td {height: 47px; padding: 0 !important; vertical-align: middle !important; border-top: 0 !important}
     .station {line-height: 47px}
     .station-popover {width: 250px; height: 131px}
@@ -67,8 +68,9 @@
           <li class="dropdown">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown"><%= current_user.user_info_short.display_name %> <%= image_tag('https://cdn.intra.42.fr/userprofil/' + current_user.user_info_short.login + '.jpg', size: '60', alt: current_user.user_info_short.login, class: 'img-circle thumbnail-profile') %> <span class="caret"></span></a>
             <ul class="dropdown-menu" role="menu">
-              <li><a href="#">Mon profil</a></li>
-              <li><%= link_to 'Mon historique', users_histories_path %></li>
+              <li><a href="#">Profil</a></li>
+              <li><%= link_to 'Amis', users_friends_path %></li>
+              <li><%= link_to 'Historique', users_histories_path %></li>
               <li class="divider"></li>
               <li><%= link_to('Se déconnecter', destroy_user_session_path, :method => :delete) %></li>
             </ul>

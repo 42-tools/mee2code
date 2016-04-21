@@ -9,7 +9,7 @@
 
 body {
   background-color: $white-six;
-  font-family: "Source Sans Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: 'Source Sans Pro', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   font-size: 14px;
 
   > div:not(.navbar) .container-fluid {
@@ -18,7 +18,7 @@ body {
     background-color: $white;
 
     &:first-child {
-      margin-top: 101px;
+      margin-top: 142px;
     }
   }
 
@@ -30,7 +30,7 @@ body {
 
   > .container-fluid {
     &:nth-child(2) {
-      margin-top: 101px;
+      margin-top: 142px;
     }
   }
 }
@@ -74,6 +74,13 @@ body {
 
   &:last-child {
     margin-bottom: 0;
+  }
+
+  thead > tr > th, thead > tr > td,
+  tbody > tr > th, tbody > tr > td,
+  tfoot > tr > th, tfoot > tr > td {
+    border-top: none;
+    vertical-align: middle;
   }
 }
 

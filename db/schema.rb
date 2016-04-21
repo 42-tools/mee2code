@@ -19,6 +19,15 @@ ActiveRecord::Schema.define(version: 20160831204744) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "user_friends", force: :cascade do |t|
+    t.integer  "user_id"
+    t.integer  "friend_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["friend_id"], name: "index_user_friends_on_friend_id"
+    t.index ["user_id"], name: "index_user_friends_on_user_id"
+  end
+
   create_table "user_histories", force: :cascade do |t|
     t.integer  "user_id"
     t.string   "host"
