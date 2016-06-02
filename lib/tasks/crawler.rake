@@ -2,90 +2,147 @@ require 'oauth2'
 
 namespace :crawler do
   desc 'TODO'
-  task locations: :environment do |task, args|
-    set_token
+  task locations: :environment do
+    oldest_location = get_locations(filter: 'active:true')
 
-    oldest_location = get_locations({ filter: 'active:true' })
-
-    UserHistory.where(end_at: nil).where.not(id: oldest_location).update_all(end_at: Time.now) unless oldest_location.empty?
-  end
-
-  task verify_locations: :environment do |task, args|
-    set_token
-
-    arel = UserHistory.arel_table
-    since = UserHistory.select(:begin_at).order(:begin_at).where(arel[:verified].eq(nil).or(arel[:verified].eq(false))).first
-
-    get_locations({ range: 'begin_at:' + since.begin_at.strftime('%FT%T%:z') + ',' + Time.current.strftime('%FT%T%:z') }) if since
-  end
-
-  task seed: :environment do |task, args|
-    set_token
-
-    puts '== 1 '.ljust(47, '=')
-
-    params = get_seeding
-
-    while params[:next] do
-      puts '== ' + (params[:next] + ' / ' + params[:max] + ' ').ljust(47, '=')
-      params = get_seeding({ page: params[:next] })
+    if oldest_location.present?
+      UserHistory.where(end_at: nil).where.not(id: oldest_location).update_all(end_at: Time.current)
     end
   end
 
-  task users: :environment do |task, args|
-    set_token
-    get_users
+  task verify_locations: :environment do
+    since = UserHistory.select(:begin_at).order(:begin_at).where(verified: nil).or(since.where(verified: false)).first
+
+    if since.present?
+      begin_at = since.begin_at.strftime('%FT%T%:z')
+      current_data = Time.current.strftime('%FT%T%:z')
+
+      get_locations(range: "begin_at: #{begin_at},#{current_data}")
+    end
   end
 
-  task projects: :environment do |task, args|
-    set_token
-    get_projects
+  task seed: :environment do
+    get_locations
+  end
+
+  task users: :environment do
+    get_users(campus_id: 1)
+  end
+
+  task projects: :environment do
+    get_projects(cursus_id: 1)
   end
 
   private
 
-  def set_token
+  def initialize_credentials
     uid = Rails.application.secrets.api_born2code_uid
     secret = Rails.application.secrets.api_born2code_secret
-    client = OAuth2::Client.new(uid, secret, site: 'https://api.intra.42.fr', ssl: { verify: false })
+    params = { site: 'https://api.intra.42.fr', ssl: { verify: false }, raise_errors: false }
+    client = OAuth2::Client.new(uid, secret, params)
     @client_credentials = client.client_credentials
-    @token = @client_credentials.get_token
   end
 
-  def get_response(path, params = {})
-    @token = @client_credentials.get_token if @token.nil? || @token.expired?
+  def initialize_request(method, path, opts = {})
+    @token = @client_credentials.get_token if @token.nil? || @token.expired? || opts.delete(:force_refresh)
+    raise_errors = opts.delete(:raise_errors) || false
 
-    begin
-      response = @token.get(path, params: params)
-    rescue OAuth2::Error
-      puts '== OAuth2Error ==================================='
-      @token = @client_credentials.get_token
-      response = @token.get(path, params: params)
+    response = @token.send(method, path, opts)
+    headers = response.headers
+    limit_remaining = (headers['x-ratelimit-remaining'] || 1).to_i
+    limit_max = headers['x-ratelimit-limit'].to_i
+
+    x_page = (headers['x-page'] || 1).to_i
+    x_total = (headers['x-total'] || 1).to_f
+    x_per_page = (headers['x-per-page'] || 1).to_f
+
+    if x_total == 1
+      puts "== GET #{path}"
+    else
+      puts "== GET (#{x_page} / #{(x_total / x_per_page).round}) #{path}"
     end
 
-    pagination = response.headers['link'].split(', ').map do |p|
-      link, params = p.split('; ')
-      rel = Rack::Utils.parse_nested_query(params.gsub('"', ''))['rel']
-      [rel, link[1..-2]]
-    end.to_h if response.headers['link']
+    puts "== Limite de l\'API dépassé (#{limit_remaining} / #{limit_max}) ".rjust(50, '=') if limit_remaining < 1
 
-    { pagination: pagination || {}, data: response.parsed }
+    raise response.error if response.error
+
+    response
+  rescue Faraday::ConnectionFailed => e
+    puts "== GET #{path}"
+    puts '== Faraday::ConnectionFailed ====================='
+    puts e.message
+  rescue OAuth2::Error => e
+    puts "== GET #{path}"
+    puts '== OAuth2Error ==================================='
+    msg = JSON.parse(e.message.split("\n")[1])
+    puts "#{msg['error']}: #{msg['message']}"
+
+    raise e if msg['message'] == 'The access token expired' && raise_errors
+  rescue => e
+    puts "== GET #{path}"
+    puts '== Exception ====================================='
+    puts e.message
   end
 
-  def get_response_full(path, params = {})
-    response = get_response(path, params)
-    data = response[:data]
-    data += get_response_full(response[:pagination]['next'])[:data] if response[:pagination]['next']
+  def request(method, path, opts = {})
+    initialize_credentials if @client_credentials.nil?
 
-    { data: data }
+    begin
+      initialize_request(method, path, opts.merge(raise_errors: true))
+    rescue OAuth2::Error
+      puts '= Essaye de réenvoyer la requête ================='
+      initialize_request(method, path, opts.merge(force_refresh: true))
+    end
   end
 
-  def get_projects
-    response = get_response_full('/v2/cursus/42/projects')
+  def pagination_compute(response)
+    pagination = response.headers['link'].split(', ').map do |str|
+      link, params = str.split('; ')
+      rel = Rack::Utils.parse_nested_query(params.delete('"'))['rel']
+      [rel, Rack::Utils.parse_nested_query(URI.parse(link[1..-2]).query)['page'].to_i]
+    end.to_h if response.headers['link'].present?
+
+    puts '= Impossible de traiter la pagination ============' if pagination.blank?
+
+    pagination
+  end
+
+  def get(path, params = {})
+    response = request(:get, path, params: params.merge(per_page: 100))
+    return {} if response.nil?
+
+    if params[:page].nil?
+      pagination = pagination_compute(response)
+      return {} if pagination.blank?
+      next_page = pagination['next']
+    end
+
+    data = response.parsed
+
+    while next_page
+      response = request(:get, path, params: params.merge(page: next_page, per_page: 100))
+      return data if response.nil?
+
+      pagination = pagination_compute(response)
+      return data if pagination.blank?
+
+      next_page = pagination['next']
+      data += response.parsed
+    end if params[:page].nil?
+
+    data
+  end
+
+  def get_projects(opts = {})
+    if opts[:cursus_id].class.name != 'Fixnum'
+      raise ArgumentError, "cursus_id must be a Fixnum. #{opts[:cursus_id].inspect} given."
+    end
+
+    response = get("/v2/cursus/#{opts[:cursus_id]}/projects")
     projects = []
     updated = 0
 
-    response[:data].each do |data|
+    response.each do |data|
       projects << Project.new(id: data['id'], name: data['name'], slug: data['slug'])
 
       puts '== ' + (data['name'] + ' ').ljust(47, '=')
@@ -97,26 +154,26 @@ namespace :crawler do
     (projects & projects_exists).sort.zip(projects_exists).each do |data, project|
       project.assign_attributes(data.serializable_hash(only: [:name, :slug]))
 
-      if project.changed?
-        project.save
-        updated += 1
-      end
+      next unless project.changed?
+
+      project.save
+      updated += 1
     end
 
     puts '=' * 50
-    puts 'Update projects: ' + updated.to_s + ' / ' + projects_exists.length.to_s
-    Project.import (projects - projects_exists)
-    puts 'Adds projects:   ' + (projects.length - projects_exists.length).to_s
+    puts "Update projects: #{updated} / #{projects_exists.length}"
+    Project.import(projects - projects_exists)
+    puts "Adds projects:   #{projects.length - projects_exists.length}"
   end
 
   def get_user_projects(project_users_url, project_id)
-    response = get_response_full(project_users_url)
+    response = get(project_users_url)
     user_projects = []
     updated = 0
 
-    response[:data].each do |data|
+    response.each do |data|
       user_projects << UserProject.new(id: data['id'], user_id: data['user']['id'], project_id: project_id,
-                                   occurrence: data['occurrence'], final_mark: data['final_mark'])
+                                       occurrence: data['occurrence'], final_mark: data['final_mark'])
     end
 
     user_projects_exists = UserProject.select(:id, :final_mark).where(id: user_projects.map(&:id)).order(:id)
@@ -124,29 +181,36 @@ namespace :crawler do
     (user_projects & user_projects_exists).sort.zip(user_projects_exists).each do |data, user_project|
       user_project.assign_attributes(data.serializable_hash(only: [:final_mark]))
 
-      if user_project.changed?
-        user_project.save
-        updated += 1
-      end
+      next unless user_project.changed?
+
+      user_project.save
+      updated += 1
     end
 
-    puts 'Update user projects: ' + updated.to_s + ' / ' + user_projects_exists.length.to_s
-    UserProject.import (user_projects - user_projects_exists)
-    puts 'Adds user projects:   ' + (user_projects.length - user_projects_exists.length).to_s
+    puts "Update user projects: #{updated} / #{user_projects_exists.length}"
+    UserProject.import(user_projects - user_projects_exists)
+    puts "Adds user projects:   #{user_projects.length - user_projects_exists.length}"
   end
 
-  def get_users
-    response = get_response_full('/v2/cursus/42/users')
+  def get_users(opts = {})
+    if opts[:campus_id].class.name != 'Fixnum'
+      raise ArgumentError, "campus_id must be a Fixnum. #{opts[:campus_id].inspect} given."
+    end
+
+    response = get("/v2/campus/#{opts[:campus_id]}/users")
     users = []
     user_infos = []
     updated = 0
 
-    response[:data].each do |data|
-      user = get_response(data['url'])[:data]
+    response.each do |data|
+      user = get('/v2/users/' + data['login'], page: 1)
+      next if user.blank?
       puts user['login'] + ' à une adresse mail vide' unless user['email']
       user['email'] = user['login'] + '@42.fr' unless user['email']
       users << User.new(id: user['id'], email: user['email'], password: Devise.friendly_token[0, 20])
-      user_infos << UserInfoShort.new(user_id: user['id'], login: user['login'], display_name: user['displayname'])
+      user_infos << UserInfoShort.new(user_id: user['id'], login: user['login'], display_name: user['displayname'],
+                                      phone: user['phone'], pool_month: user['pool_month'], pool_year: user['pool_year'],
+                                      image_url: user['image_url'])
     end
 
     users_exists = User.select(:id, :email).where(id: users.map(&:id)).order(:id)
@@ -154,26 +218,26 @@ namespace :crawler do
     (users & users_exists).sort.zip(users_exists).each do |data, user|
       user.assign_attributes(data.serializable_hash(only: [:email]))
 
-      if user.changed?
-        begin
-          user.save
-          updated += 1
-        rescue ActiveRecord::RecordNotUnique
-          puts 'Adresse mail déjà attribué (data: ' + data.email.split('@')[0] + '[' + data.id.to_s + '], user: ' + user.email.split('@')[0] + '[' + user.id.to_s + '])'
-        end
+      next unless user.changed?
+
+      begin
+        user.save
+        updated += 1
+      rescue ActiveRecord::RecordNotUnique
+        puts 'Adresse mail déjà attribué (data: ' + data.email.split('@')[0] + '[' + data.id.to_s + '], user: ' + user.email.split('@')[0] + '[' + user.id.to_s + '])'
       end
     end
 
-    puts 'Update users: ' + updated.to_s + ' / ' + users_exists.length.to_s
-    User.import (users - users_exists)
-    puts 'Adds users:   ' + (users.length - users_exists.length).to_s
+    puts "Update users: #{updated} / #{users_exists.length}"
+    User.import(users - users_exists)
+    puts "Adds users:   #{users.length - users_exists.length}"
 
     updated = 0
-    user_infos_exists = UserInfoShort.select(:id, :user_id, :login, :display_name).where(user_id: user_infos.map(&:user_id)).order(:user_id)
+    user_infos_exists = UserInfoShort.select(:id, :user_id, :login, :display_name, :phone, :pool_month, :pool_year, :image_url).where(user_id: user_infos.map(&:user_id)).order(:user_id)
     user_infos_exists_ids = user_infos_exists.map(&:user_id)
 
     user_infos.select { |u| user_infos_exists_ids.include?(u.user_id) }.sort { |a, b| a.user_id <=> b.user_id }.zip(user_infos_exists).each do |data, user_info|
-      user_info.assign_attributes(data.serializable_hash(only: [:login, :display_name]))
+      user_info.assign_attributes(data.serializable_hash(only: [:login, :display_name, :phone, :pool_month, :pool_year, :image_url]))
 
       if user_info.changed?
         user_info.save
@@ -181,51 +245,41 @@ namespace :crawler do
       end
     end
 
-    puts 'Update users info: ' + updated.to_s + ' / ' + user_infos_exists.length.to_s
+    puts "Update users info: #{updated} / #{user_infos_exists.length}"
     UserInfoShort.import user_infos.reject { |u| user_infos_exists_ids.include?(u.user_id) }
-    puts 'Adds users info:   ' + (user_infos.length - user_infos_exists.length).to_s
-  end
-
-  def get_seeding(params = {})
-    response = get_response('/v2/locations', params)
-    adds_locations(response[:data])
-
-    if response[:pagination]['next']
-      next_page = Rack::Utils.parse_nested_query(URI.parse(response[:pagination]['next']).query)['page']
-      max_page = Rack::Utils.parse_nested_query(URI.parse(response[:pagination]['last']).query)['page']
-    end
-
-    { next: next_page || false, max: max_page || false }
+    puts "Adds users info:   #{user_infos.length - user_infos_exists.length}"
   end
 
   def get_locations(params = {})
-    response = get_response_full('/v2/locations', params)
-    adds_locations(response[:data]).map(&:id)
+    response = get('/v2/locations', params)
+    adds_locations(response).map(&:id)
   end
 
-  def adds_locations(data)
+  def adds_locations(locations)
     stories = []
     updated = 0
 
-    data.each do |data|
-      stories << UserHistory.new(id: data['id'], user_id: data['user']['id'], begin_at: data['begin_at'],
-                                 host: data['host'], end_at: data['end_at'], verified: data['end_at'] != nil)
+    locations.each do |data|
+      next unless data['user']
+
+      stories << UserHistory.new(id: data['id'], user_id: data['user']['id'], host: data['host'],
+                                 begin_at: data['begin_at'], end_at: data['end_at'], verified: data['end_at'].present?)
     end
 
     stories_exists = UserHistory.select(:id, :end_at, :verified).where(id: stories.map(&:id)).order(:id)
 
-    (stories & stories_exists).sort.zip(stories_exists).each do |data, history|
-      history.assign_attributes(data.serializable_hash(only: [:end_at, :verified]))
+    (stories & stories_exists).sort.zip(stories_exists).each do |new_location, old_location|
+      old_location.assign_attributes(new_location.serializable_hash(only: [:end_at, :verified]))
 
-      if history.changed?
-        history.save
-        updated += 1
-      end
+      next unless old_location.changed?
+
+      old_location.save
+      updated += 1
     end
 
-    puts 'Update user histories: ' + updated.to_s + ' / ' + stories_exists.length.to_s
-    UserHistory.import (stories - stories_exists)
-    puts 'Adds user histories:   ' + (stories.length - stories_exists.length).to_s
+    puts "Update user histories: #{updated} / #{stories_exists.length}"
+    UserHistory.import(stories - stories_exists)
+    puts "Adds user histories:   #{stories.length - stories_exists.length}"
 
     stories
   end
