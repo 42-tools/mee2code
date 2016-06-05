@@ -10,7 +10,7 @@
         <ul class="nav navbar-nav" role="tablist">
           <% @names.each_with_index do |name, index| %>
           <li<%= ' class=active' if index.zero? %>>
-            <a href="#cluster<%= index + 1 %>" role="tab" data-toggle="tab" data-placement="bottom" title="<%= pluralize(@data[index][:slots], 'place', 'places') %> disponible"><%= name %></a>
+            <a href="#cluster<%= index + 1 %>" role="tab" data-toggle="tab" data-placement="bottom" title="<%= pluralize(@data[index][:slots], 'place', plural: 'places') %> disponible"><%= name %></a>
           </li>
           <% end %>
         </ul>

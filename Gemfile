@@ -11,7 +11,7 @@ gem 'devise'
 # Devise locale data
 gem 'devise-i18n'
 # Authentication OAuth2
-gem 'omniauth-oauth2'
+gem 'omniauth-oauth2', '~> 1.3.1'
 # Use SCSS for stylesheets
 gem 'sass-rails'
 # Use Twitter Bootstap as stylesheet framework

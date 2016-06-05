@@ -5,11 +5,8 @@ module OmniAuth
     class Born2code < OmniAuth::Strategies::OAuth2
       option :name, :born2code
 
-      option :client_options, {
-        site: 'https://api.intra.42.fr',
-        authorize_path: '/oauth/authorize',
-        token_path: '/oauth/token'
-      }
+      option :client_options, site: 'https://api.intra.42.fr',
+                              authorize_path: '/oauth/authorize', token_path: '/oauth/token'
 
       uid { raw_info['id'].to_s }
 
@@ -18,7 +15,7 @@ module OmniAuth
           email: raw_info['email'],
           login: raw_info['login'],
           display_name: raw_info['displayname'],
-          picture: raw_info['image_url'],
+          picture: raw_info['image_url']
         }
       end
 
