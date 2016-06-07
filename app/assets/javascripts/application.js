@@ -1,5 +1,4 @@
 //= require jquery
-//= require jquery.turbolinks
 //= require jquery_ujs
 //= require jquery-ui/core
 //= require bootstrap/alert
@@ -16,7 +15,7 @@
 				var ret;
 
 				if (typeof settings.onPreload !== typeof undefined) {
-					ret = settings.onPreload.call(this, settings);		
+					ret = settings.onPreload.call(this, settings);
 				}
 
 				if (ret != false) {
@@ -31,10 +30,10 @@
 						.off('click')
 						.on('click', function (e) {
 							$(this).hide();
-					
+
 							var invokedOn = $(this).data('invokedOn');
 							var menuItem = $(e.target);
-							
+
 							settings.onClick.call(this, $(settings.selector), invokedOn, menuItem);
 						});
 
@@ -63,7 +62,7 @@
 			}
 
 			return mouseWidth;
-		}		
+		}
 
 		function getTopLocation(e) {
 			var mouseHeight = e.pageY;
@@ -212,7 +211,7 @@ $(function() {
 		content: function() {
 			var content = '';
 			var client = $(this);
-			var parent = client.parent();					
+			var parent = client.parent();
 			var login = client.data('login');
 			var name = client.data('title');
 			var avatar = client.data('avatar');
@@ -558,7 +557,7 @@ $(function() {
 				_: new Date().getTime()
 			},
 			cache: false,
-			success: function(json) {	
+			success: function(json) {
 				if (json.result == 'success') {
 					location.reload();
 				} else {
@@ -585,7 +584,7 @@ $(function() {
 				_: new Date().getTime()
 			},
 			cache: false,
-			success: function(response) {	
+			success: function(response) {
 				if (response.register == 'OK') {
 					location.reload();
 				} else {
