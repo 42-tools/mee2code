@@ -23,23 +23,23 @@ port        ENV.fetch('PORT') { 3000 }
 #
 environment ENV.fetch('RAILS_ENV') { 'development' }
 
-if ENV['RAILS_ENV'] == 'production'
+if ENV['RAILS_ENV'].inquiry.production?
   # Store the pid of the server in the file at "path".
   #
-  pidfile '%s/tmp/pids/puma.pid' % [app_dir]
+  # pidfile '%s/tmp/pids/puma.pid' % [app_dir]
 
   # Daemonize the server into the background. Highly suggest that
   # this be combined with "pidfile" and "stdout_redirect".
   #
   # The default is "false".
   #
-  daemonize
+  # daemonize
 
   # Redirect STDOUT and STDERR to files specified. The 3rd parameter
   # ("append") specifies whether the output is appended, the default is
   # "false".
   #
-  stdout_redirect '%s/log/puma.stdout.log' % [app_dir], '%s/log/puma.stderr.log' % [app_dir], true
+  # stdout_redirect '%s/log/puma.stdout.log' % [app_dir], '%s/log/puma.stderr.log' % [app_dir], true
 
   # Specifies the number of `workers` to boot in clustered mode.
   # Workers are forked webserver processes. If using threads and workers together

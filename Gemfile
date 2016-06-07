@@ -2,7 +2,6 @@ source 'https://rubygems.org'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '~> 5.0.0'
-gem 'coffee-script'
 # Rails locale data
 gem 'rails-i18n'
 # Use Puma as the app server
@@ -22,6 +21,8 @@ gem 'sass-rails'
 gem 'bootstrap-sass'
 # Use Uglifier as compressor for JavaScript assets
 gem 'uglifier'
+# Use CoffeeScript for .coffee assets and views
+gem 'coffee-script'
 # See https://github.com/rails/execjs#readme for more supported runtimes
 # gem 'therubyracer', platforms: :ruby
 
