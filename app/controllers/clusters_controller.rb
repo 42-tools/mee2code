@@ -1,4 +1,7 @@
 class ClustersController < ApplicationController
+  skip_before_action :authenticate_user!
+  before_action :authenticate_user!, unless: :bypass_ip?
+
   def index
     @names = ['Metropolis', 'Westeros', 'Tatooine']
     base = [[
