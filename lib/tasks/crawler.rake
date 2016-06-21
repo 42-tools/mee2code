@@ -11,7 +11,8 @@ namespace :crawler do
   end
 
   task verify_locations: :environment do
-    since = UserHistory.select(:begin_at).order(:begin_at).where(verified: nil).or(since.where(verified: false)).first
+    histories = UserHistory.select(:begin_at, :verified)
+    since = histories.where(verified: nil).or(histories.where(verified: false)).order(:begin_at).first
 
     if since.present?
       begin_at = since.begin_at.strftime('%FT%T%:z')
