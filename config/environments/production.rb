@@ -47,7 +47,15 @@ Rails.application.configure do
   config.log_level = :warn
 
   # Prepend all log lines with the following tags.
-  config.log_tags = [ :request_id ]
+  config.log_tags = [:request_id, :remote_ip, -> (req) {
+    session_data = req.cookie_jar.signed['_session_id']
+    warden_data = session_data['warden.user.provider_user.key']
+    if warden_data
+      '#' + warden_data[1][0].to_s
+    else
+      'Anonymous'
+    end
+  }]
 
   # Use a different cache store in production.
   # config.cache_store = :mem_cache_store

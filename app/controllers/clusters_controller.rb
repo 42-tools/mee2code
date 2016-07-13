@@ -107,7 +107,7 @@ class ClustersController < ApplicationController
             end
 
             if user
-              class_name << 'station-success'
+              class_name << (user.piscine? ? 'station-warning' : 'station-success')
 
               unless user.new_record?
                 data = user.serializable_hash(only: [:login])

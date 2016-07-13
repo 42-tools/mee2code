@@ -1,4 +1,3 @@
-# encoding: UTF-8
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
@@ -11,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160426205921) do
+ActiveRecord::Schema.define(version: 20160712211446) do
 
   create_table "projects", force: :cascade do |t|
     t.string   "name"
@@ -28,9 +27,8 @@ ActiveRecord::Schema.define(version: 20160426205921) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean  "verified"
+    t.index ["user_id"], name: "index_user_histories_on_user_id"
   end
-
-  add_index "user_histories", ["user_id"], name: "index_user_histories_on_user_id"
 
   create_table "user_info_shorts", force: :cascade do |t|
     t.integer  "user_id"
@@ -42,9 +40,9 @@ ActiveRecord::Schema.define(version: 20160426205921) do
     t.string   "image_url"
     t.string   "pool_month"
     t.string   "pool_year"
+    t.string   "cursus"
+    t.index ["user_id"], name: "index_user_info_shorts_on_user_id"
   end
-
-  add_index "user_info_shorts", ["user_id"], name: "index_user_info_shorts_on_user_id"
 
   create_table "user_projects", force: :cascade do |t|
     t.integer  "user_id"
@@ -53,10 +51,9 @@ ActiveRecord::Schema.define(version: 20160426205921) do
     t.integer  "final_mark"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["project_id"], name: "index_user_projects_on_project_id"
+    t.index ["user_id"], name: "index_user_projects_on_user_id"
   end
-
-  add_index "user_projects", ["project_id"], name: "index_user_projects_on_project_id"
-  add_index "user_projects", ["user_id"], name: "index_user_projects_on_user_id"
 
   create_table "users", force: :cascade do |t|
     t.string   "email",              default: "", null: false
@@ -68,8 +65,7 @@ ActiveRecord::Schema.define(version: 20160426205921) do
     t.string   "last_sign_in_ip"
     t.datetime "created_at",                      null: false
     t.datetime "updated_at",                      null: false
+    t.index ["email"], name: "index_users_on_email", unique: true
   end
-
-  add_index "users", ["email"], name: "index_users_on_email", unique: true
 
 end

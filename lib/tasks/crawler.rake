@@ -3,19 +3,23 @@ require 'oauth2'
 namespace :crawler do
   desc 'TODO'
   task locations: :environment do
-    oldest_location = get_locations(filter: { active: true })
+    ActiveRecord::Base.transaction do
+      oldest_location = get_locations(filter: { active: true })
 
-    UserHistory.where(end_at: nil).where.not(id: oldest_location).update_all(end_at: Time.current) if oldest_location.present?
+      UserHistory.where(end_at: nil).where.not(id: oldest_location).update_all(end_at: Time.current) if oldest_location.present?
+    end
   end
 
   task verify_locations: :environment do
-    since = UserHistory.where(verified: nil).or(UserHistory.where(verified: false)).maximum(:begin_at)
+    ActiveRecord::Base.transaction do
+      since = UserHistory.where(verified: nil).or(UserHistory.where(verified: false)).maximum(:begin_at)
 
-    unless since.nil?
-      begin_at = since.strftime('%FT%T%:z')
-      current_date = Time.current.strftime('%FT%T%:z')
+      unless since.nil?
+        begin_at = since.strftime('%FT%T%:z')
+        current_date = Time.current.strftime('%FT%T%:z')
 
-      get_locations(range: 'begin_at: %s,%s' % [begin_at, current_date])
+        get_locations(range: 'begin_at: %s,%s' % [begin_at, current_date])
+      end
     end
   end
 
@@ -203,12 +207,12 @@ namespace :crawler do
     end
   end
 
-  def adds_users(users)
+  def adds_users(response)
     users = []
     user_infos = []
     updated = 0
 
-    users.each do |data|
+    response.each do |data|
       user = get(data['url'])
 
       if user.blank?
@@ -224,7 +228,7 @@ namespace :crawler do
       users << User.new(id: user['id'], email: user['email'], password: Devise.friendly_token[0, 20])
       user_infos << UserInfoShort.new(user_id: user['id'], login: user['login'], display_name: user['displayname'],
                                       phone: user['phone'], pool_month: user['pool_month'], pool_year: user['pool_year'],
-                                      image_url: user['image_url'])
+                                      image_url: user['image_url'], cursus: user['cursus_users'].map { |cursus| cursus['cursus_id'] })
     end
 
     users_exists = User.select(:id, :email).where(id: users.map(&:id)).order(:id)
