@@ -1,11 +1,11 @@
 /*
  *= require jquery-ui/core
  */
- 
-@import "bootstrap-sprockets";
-@import "bootstrap";
-@import "vars";
-@import url("//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700,400italic");
+
+@import 'bootstrap-sprockets';
+@import 'bootstrap';
+@import 'vars';
+@import url('//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700,400italic');
 
 body {
   background-color: $white-six;
@@ -27,7 +27,6 @@ body {
       margin-top: 150px;
     }
   }
-
 
   > .container-fluid {
     &:nth-child(2) {
@@ -166,6 +165,10 @@ nav {
       }
     }
   }
+}
+
+.tab-content > .active {
+    display: initial;
 }
 
 .navbar-default {

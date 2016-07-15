@@ -1,11 +1,12 @@
 class UserHistory < ActiveRecord::Base
   belongs_to :user
+  has_one :user_info_short, through: :user
 
-  scope :logged, -> { where(end_at: nil) }
-  scope :range, lambda { |from_time, to_time| where('begin_at < ? AND (end_at >= ? OR end_at = NULL)', to_time, from_time) }
+  scope :logged, -> { where('host LIKE ?', 'e%r%p%').where(end_at: nil) }
+  scope :range, -> (from_time, to_time) { where('begin_at < ?', to_time).where('end_at >= ? OR end_at = NULL', from_time) }
   scope :today, -> { range(Date.current.to_time, Date.current.tomorrow.to_time) }
   scope :yesterday, -> { range(Date.current.yesterday.to_time, Date.current.to_time) }
-  scope :cluster, lambda { |index| where('host LIKE ?', %(e#{index}r%)) }
+  scope :cluster, -> (index) { where('host LIKE ?', %(e#{index}r%)) }
 
   def self.chart(from_time = Date.current.to_time, to_time = from_time.tomorrow.to_time)
     chart = (0..(from_time.to_date == Date.current ? Time.current.hour : 23)).map { |num| [num, []] }.to_h

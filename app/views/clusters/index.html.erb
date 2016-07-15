@@ -68,7 +68,11 @@
                     <% row_value.each do |station| %>
                     <td id="<%= station[:host] %>">
                       <div class="<%= station[:class].join ' ' %>" <%= station[:data].map { |name, value| 'data-' + name.to_s + '="' + value + '"' }.join(' ').html_safe %>>
-                        <% if station[:kind] == :station %><span class="glyphicon glyphicon-phone"></span><% end %>&nbsp;
+                        <% if station[:kind] == :station && station[:data].present? %>
+                          <%= image_tag(station[:data][:avatar], size: '20', alt: station[:data][:login], class: 'img-circle thumbnail-profile') %>
+                        <% else %>
+                          <% if station[:kind] == :station %><span class="glyphicon glyphicon-phone"></span><% end %>&nbsp;
+                        <% end %>
                       </div>
                     </td>
                     <% end %>

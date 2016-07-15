@@ -1,54 +1,23 @@
 class ClustersController < ApplicationController
   skip_before_action :authenticate_user!
   before_action :authenticate_user!, unless: :bypass_ip?
+  before_action :set_campus!, only: [:index]
+  before_action :set_data!, only: [:index]
 
   def index
-    @names = ['Metropolis', 'Westeros', 'Tatooine']
-    base = [[
-            ['x', 'x', 'x', 'x', 'x', 'x', 'x', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x'],
-            ['x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x'],
-            ['x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'o', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'o', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x'],
-            ['x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x'],
-            ['x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x'],
-            ['x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'o', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'o', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x'],
-            ['x', 'x', 'x', 'x', 'x', 'x', '.', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x'],
-            ['x', 'x', 'x', 'x', 'x', 'x', '.', '.', 'o', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x'],
-            ['-', 'x', 'x', 'x', 'x', 'x', '.', '.', 'o', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'o', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x'],
-            ['x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x'],
-            ['x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x'],
-            ['x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x'],
-            ['x', 'x', 'x', 'x', 'x', 'x', 'x', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x']
-          ],
-          [
-            ['x', 'x', 'x', 'x', 'x', 'x', 'x', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x'],
-            ['x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x'],
-            ['x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'o', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'o', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x'],
-            ['x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x'],
-            ['x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', '.', '.', 'x', 'x', 'x', 'x', 'x', 'x'],
-            ['x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'o', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'o', '.', '.', 'x', 'x', 'x', 'x', 'x', 'x'],
-            ['x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x'],
-            ['x', 'x', 'x', 'x', 'x', 'x', '.', '.', 'o', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x'],
-            ['x', 'x', 'x', 'x', 'x', 'x', '.', '.', 'o', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'o', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x'],
-            ['x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x'],
-            ['x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x'],
-            ['x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x'],
-            ['x', 'x', 'x', 'x', 'x', 'x', 'x', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x']
-          ],
-          [
-            ['x', 'x', 'x', 'x', 'x', 'x', 'x', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x'],
-            ['x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x'],
-            ['x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'o', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'o', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x'],
-            ['x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x'],
-            ['x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', '.', '.', 'x', 'x', 'x', 'x', 'x', 'x'],
-            ['x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'o', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'o', '.', '.', 'x', 'x', 'x', 'x', 'x', 'x'],
-            ['x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x'],
-            ['x', 'x', 'x', 'x', 'x', 'x', '.', '.', 'o', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x'],
-            ['x', 'x', 'x', 'x', 'x', 'x', '.', '.', 'o', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'o', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x'],
-            ['x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x'],
-            ['x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x'],
-            ['x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x'],
-            ['x', 'x', 'x', 'x', 'x', 'x', 'x', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'x', 'x', 'x', 'x', 'x', 'x', 'x']
-          ]]
+  end
+
+  private
+
+  def set_campus!
+    campus_id = :'1'
+
+    @campus = Rails.application.config.meet2code.campus[campus_id]
+  end
+
+  def set_data!
+    @names = @campus.clusters.values.map(&:name)
+    base = @campus.clusters.values.map(&:mapping)
 
     @data = base.map do |cluster_value|
       rows_length = cluster_value.map { |r| r.inject(0) { |n, s| n + (s == 'x' ? 1 : 0) } }
@@ -69,12 +38,10 @@ class ClustersController < ApplicationController
       end.map! { |k, v| v == 'x' || v == '-' ? k.to_s : '' }
     end
 
-    users = UserInfoShort.all.map { |info| [info.user_id, info] }.to_h
-    users.default = UserInfoShort.new
-
     @maps = base.map.with_index do |cluster_value, cluster_index|
-      @data[cluster_index][:charts] = UserHistory.cluster(cluster_index + 1).chart
-      histories = UserHistory.logged.cluster(cluster_index + 1).map { |history| [history.host, users[history.user_id]] }.to_h
+      user_history = UserHistory.cluster(cluster_index + 1)
+      @data[cluster_index][:charts] = user_history.chart
+      histories = user_history.logged.includes(:user_info_short).map { |history| [history.host, history.user_info_short || UserInfoShort.new] }.to_h
       @data[cluster_index][:percent] = histories.length.to_f / @data[cluster_index][:slots] * 100
       @data[cluster_index][:slots] -= histories.length
 
@@ -110,9 +77,8 @@ class ClustersController < ApplicationController
               class_name << (user.piscine? ? 'station-warning' : 'station-success')
 
               unless user.new_record?
-                data = user.serializable_hash(only: [:login])
-                data.merge!({ title: user.display_name, placement: 'auto',
-                              avatar: 'https://cdn.intra.42.fr/userprofil/' + user.login + '.jpg' })
+                data = { login: user.login, title: user.display_name, placement: 'auto',
+                         avatar: 'https://cdn.intra.42.fr/userprofil/' + user.login + '.jpg' }
               end
             else
               class_name << 'station-default'
@@ -129,9 +95,5 @@ class ClustersController < ApplicationController
         end]
       end.to_h.sort { |a, b| b[0] <=> a[0] }
     end
-  end
-
-  def get
-    render json: UserHistory.logged.cluster(params[:index]), status: :ok
   end
 end

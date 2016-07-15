@@ -23,7 +23,7 @@
               <% @histories.each do |week, histories| %>
               <tr class="info">
                 <td colspan="2">Semaine du <%= l(week, format: '%A %e %B') %> au <%= l(week + 6.days, format: '%A %e %B') %></td>
-                <td><span class="label label-info"><%= distance_of_time_in_words(0, histories.inject(0) { |n, history| (history.begin_at.to_time - history.end_at.to_time) + n }) %></span></td>
+                <td><span class="label label-info"><%= distance_of_time_in_words(0, histories.inject(0) { |n, history| (history.end_at ? history.begin_at.to_time - history.end_at.to_time : 0) + n }) %></span></td>
               </tr>
               <% histories.each do |history| %>
               <tr>

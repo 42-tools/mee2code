@@ -41,8 +41,6 @@ gem 'jbuilder'
 # Use Capistrano for deployment
 # gem 'capistrano-rails', group: :development
 
-gem 'pry-rails'
-
 group :production do
   # Use postgresql as the database for Active Record
   gem 'pg'
@@ -65,9 +63,10 @@ group :development do
   gem 'spring'
   gem 'spring-watcher-listen'
 
-  #
-  gem 'better_errors'
-  gem 'rubocop'
+  # Optimization tools
+  gem 'rack-mini-profiler', require: false
+  gem 'brakeman', require: false
+  gem 'rubocop', require: false
 end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
