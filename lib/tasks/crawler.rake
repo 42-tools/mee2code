@@ -11,15 +11,13 @@ namespace :crawler do
   end
 
   task verify_locations: :environment do
-    ActiveRecord::Base.transaction do
-      since = UserHistory.where(verified: nil).or(UserHistory.where(verified: false)).maximum(:begin_at)
+    since = UserHistory.where(verified: nil).or(UserHistory.where(verified: false)).maximum(:begin_at)
 
-      unless since.nil?
-        begin_at = since.strftime('%FT%T%:z')
-        current_date = Time.current.strftime('%FT%T%:z')
+    unless since.nil?
+      begin_at = since.strftime('%FT%T%:z')
+      current_date = Time.current.strftime('%FT%T%:z')
 
-        get_locations(range: 'begin_at: %s,%s' % [begin_at, current_date])
-      end
+      get_locations(range: { begin_at: '%s,%s' % [begin_at, current_date] })
     end
   end
 
@@ -156,7 +154,12 @@ namespace :crawler do
 
       next unless project.changed?
 
-      updated += 1 if project.save!
+      begin
+        updated += 1 if project.save!
+      rescue ActiveRecord::RecordInvalid
+        puts '== ActiveRecord::RecordInvalid ==================='
+        puts project.erros.messages
+      end
     end
 
     puts '=' * 50
@@ -187,7 +190,12 @@ namespace :crawler do
 
       next unless user_project.changed?
 
-      updated += 1 if user_project.save!
+      begin
+        updated += 1 if user_project.save!
+      rescue ActiveRecord::RecordInvalid
+        puts '== ActiveRecord::RecordInvalid ==================='
+        puts user_project.erros.messages
+      end
     end
 
     puts 'Update users projects: %d / %d' % [updated, user_projects_exists.length]
@@ -245,7 +253,11 @@ namespace :crawler do
 
       begin
         updated += 1 if user.save!
+      rescue ActiveRecord::RecordInvalid
+        puts '== ActiveRecord::RecordInvalid ==================='
+        puts user.erros.messages
       rescue ActiveRecord::RecordNotUnique
+        puts '== ActiveRecord::RecordNotUnique ================='
         puts 'Adresse mail déjà attribué (data: %s[%s], user: %s[%s])' % [data.email.split('@')[0], data.id, user.email.split('@')[0], user.id]
       end
     end
@@ -255,7 +267,7 @@ namespace :crawler do
     puts 'Adds users:   %d' % [users.length - users_exists.length]
 
     updated = 0
-    user_infos_exists = UserInfoShort.select(:id, :user_id, :login, :display_name, :phone, :pool_month, :pool_year, :image_url).where(user_id: user_infos.map(&:user_id)).order(:user_id)
+    user_infos_exists = UserInfoShort.select(:id, :user_id, :login, :display_name, :phone, :pool_month, :pool_year, :image_url, :cursus).where(user_id: user_infos.map(&:user_id)).order(:user_id)
     user_infos_exists_ids = user_infos_exists.map(&:user_id)
 
     user_infos.select { |u| user_infos_exists_ids.include?(u.user_id) }.sort { |a, b| a.user_id <=> b.user_id }.zip(user_infos_exists).each do |data, user_info|
@@ -264,11 +276,16 @@ namespace :crawler do
         next
       end
 
-      user_info.assign_attributes(data.serializable_hash(only: [:login, :display_name, :phone, :pool_month, :pool_year, :image_url]))
+      user_info.assign_attributes(data.serializable_hash(only: [:login, :display_name, :phone, :pool_month, :pool_year, :image_url, :cursus]))
 
       next unless user_info.changed?
 
-      updated += 1 if user_info.save!
+      begin
+        updated += 1 if user_info.save!
+      rescue ActiveRecord::RecordInvalid
+        puts '== ActiveRecord::RecordInvalid ==================='
+        puts user_info.erros.messages
+      end
     end
 
     puts 'Update users info: %d / %d' % [updated, user_infos_exists.length]
@@ -280,10 +297,12 @@ namespace :crawler do
     oldest_locations = []
 
     get('/v2/locations', params) do |response|
-      oldest_location = adds_locations(response).map(&:id)
-      oldest_locations += oldest_location
+      ActiveRecord::Base.transaction do
+        oldest_location = adds_locations(response).map(&:id)
+        oldest_locations += oldest_location
 
-      yield oldest_location if block_given?
+        yield oldest_location if block_given?
+      end
     end
 
     oldest_locations
@@ -318,7 +337,8 @@ namespace :crawler do
       begin
         updated += 1 if old_location.save!
       rescue ActiveRecord::RecordInvalid
-        puts 'L\'utilisateur %s n\'existe pas' % [old_location.user_id]
+        puts '== ActiveRecord::RecordInvalid ==================='
+        puts old_location.erros.messages
       end
     end
 

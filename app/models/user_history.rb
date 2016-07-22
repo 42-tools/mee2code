@@ -1,5 +1,5 @@
 class UserHistory < ActiveRecord::Base
-  belongs_to :user
+  belongs_to :user, required: false
   has_one :user_info_short, through: :user
 
   scope :logged, -> { where('host LIKE ?', 'e%r%p%').where(end_at: nil) }
