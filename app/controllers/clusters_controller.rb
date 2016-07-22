@@ -95,5 +95,13 @@ class ClustersController < ApplicationController
         end]
       end.to_h.sort { |a, b| b[0] <=> a[0] }
     end
+
+    @charts = @data.map.with_index do |data, index|
+      {
+        name: @names[index],
+        pointInterval: 24 * 3600 * 1000,
+        data: data[:charts]
+      }
+    end
   end
 end

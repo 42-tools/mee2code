@@ -13,13 +13,16 @@
             <a href="#cluster<%= index + 1 %>" role="tab" data-toggle="tab" data-placement="bottom" title="<%= pluralize(@data[index][:slots], 'place', plural: 'places') %> disponible"><%= name %></a>
           </li>
           <% end %>
+          <li>
+            <a href="#stats" role="tab" data-toggle="tab">Stats</a>
+          </li>
         </ul>
       </div>
     </div>
   </div>
+  <div class="hide" id="charts"><%= @charts.to_json %></div>
   <div class="tab-content">
-    <% @names.each_with_index do |name, index| %>
-    <div role="tabpanel" class="tab-pane fade<%= ' in active' if index.zero? %>" id="cluster<%= index + 1 %>">
+    <div role="tabpanel" class="tab-pane fade" id="stats">
       <div class="container-fluid">
         <div class="row">
             <div class="page-header">
@@ -28,9 +31,13 @@
                 <%= Date.current.strftime(t'date.formats.long') %>
               </p>
             </div>
-          <div class="charts" data-cluster="<%= index + 1 %>"></div>
-          <div class="hide" id="charts<%= index + 1 %>"><%= @data[index][:charts].to_json %></div>
+          <div class="charts"></div>
         </div>
+      </div>
+    </div>
+    <% @names.each_with_index do |name, index| %>
+    <div role="tabpanel" class="tab-pane fade<%= ' in active' if index.zero? %>" id="cluster<%= index + 1 %>">
+      <div class="container-fluid">
         <div class="row">
           <div class="col-xs-12">
             <%= render 'layouts/notice' %>
@@ -69,7 +76,7 @@
                     <td id="<%= station[:host] %>">
                       <div class="<%= station[:class].join ' ' %>" <%= station[:data].map { |name, value| 'data-' + name.to_s + '="' + value + '"' }.join(' ').html_safe %>>
                         <% if station[:kind] == :station && station[:data].present? %>
-                          <%= image_tag(station[:data][:avatar], size: '20', alt: station[:data][:login], class: 'img-circle thumbnail-profile') %>
+                          <%= image_tag(station[:data][:avatar], size: '32', alt: station[:data][:login], class: 'img-circle thumbnail-profile') %>
                         <% else %>
                           <% if station[:kind] == :station %><span class="glyphicon glyphicon-phone"></span><% end %>&nbsp;
                         <% end %>
