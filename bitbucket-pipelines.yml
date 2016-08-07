@@ -3,6 +3,7 @@ pipelines:
   default:
     - step:
         script:
+          - apt-get update && apt-get install -y nodejs --no-install-recommends && rm -rf /var/lib/apt/lists/*
           - bundle install --deployment --path vendor/bundle
           - bundle exec rake db:migrate
           - bundle exec rake db:test:prepare
