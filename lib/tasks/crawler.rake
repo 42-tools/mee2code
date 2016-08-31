@@ -4,9 +4,15 @@ namespace :crawler do
   desc 'TODO'
   task locations: :environment do
     ActiveRecord::Base.transaction do
-      oldest_location = get_locations(filter: { active: true })
+      oldest_location = get_locations(filter: { active: true, campus_id: 1 })
 
-      UserHistory.where(end_at: nil).where.not(id: oldest_location).update_all(end_at: Time.current) if oldest_location.present?
+      UserHistory.where(end_at: nil, campus_id: 1).where.not(id: oldest_location).update_all(end_at: Time.current) if oldest_location.present?
+    end
+
+    ActiveRecord::Base.transaction do
+      oldest_location = get_locations(filter: { active: true, campus_id: 7 })
+
+      UserHistory.where(end_at: nil, campus_id: 7).where.not(id: oldest_location).update_all(end_at: Time.current) if oldest_location.present?
     end
   end
 
@@ -318,11 +324,11 @@ namespace :crawler do
         next
       end
 
-      stories << UserHistory.new(id: data['id'], user_id: data['user']['id'], host: data['host'],
-                                 begin_at: data['begin_at'], end_at: data['end_at'], verified: data['end_at'].present?)
+      stories << UserHistory.new(id: data['id'], user_id: data['user']['id'], host: data['host'], campus_id: data['campus_id'],
+                                 begin_at: data['begin_at'], end_at: data['end_at'], primary: data['primary'], verified: data['end_at'].present?)
     end
 
-    stories_exists = UserHistory.select(:id, :end_at, :verified).where(id: stories.map(&:id)).order(:id)
+    stories_exists = UserHistory.select(:id, :end_at, :verified, :primary, :campus_id).where(id: stories.map(&:id)).order(:id)
 
     (stories & stories_exists).sort.zip(stories_exists).each do |new_location, old_location|
       if new_location.id != old_location.id
@@ -330,7 +336,7 @@ namespace :crawler do
         next
       end
 
-      old_location.assign_attributes(new_location.serializable_hash(only: [:end_at, :verified]))
+      old_location.assign_attributes(new_location.serializable_hash(only: [:end_at, :verified, :primary, :campus_id]))
 
       next unless old_location.changed?
 
