@@ -13,7 +13,7 @@ class UserHistory < ActiveRecord::Base
     from_time = from_time.to_time
     to_time = to_time.to_time
 
-    if ActiveRecord::Base::connection.is_a?(ActiveRecord::ConnectionAdapters::SQLite3Adapter)
+    if connection.adapter_name == 'SQLite'
       histories = self.range(from_time, to_time).group('strftime("%H", begin_at)', :id).count
     else
       histories = self.range(from_time, to_time).group('EXTRACT(HOUR FROM begin_at)', :id).count
