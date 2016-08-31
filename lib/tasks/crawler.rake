@@ -80,6 +80,8 @@ namespace :crawler do
 
     raise response.error if response.error
 
+    response.define_singleton_method(:parsed, -> { return JSON.parse(self.body) }) if response && !headers['Content-Type'].include?('application/json')
+
     [response, x_total > 1 && x_page < x_total ? x_page + 1 : nil]
   rescue Faraday::ConnectionFailed => e
     puts '== GET %s' % [path]
