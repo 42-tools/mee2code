@@ -77,8 +77,7 @@ class ClustersController < ApplicationController
               class_name << (user.piscine? ? 'station-warning' : 'station-success')
 
               unless user.new_record?
-                data = { login: user.login, title: user.display_name, placement: 'auto',
-                         avatar: 'https://cdn.intra.42.fr/userprofil/' + user.login + '.jpg' }
+                data = { login: user.login, title: user.display_name, placement: 'auto', avatar: user.image_url }
               end
             else
               class_name << 'station-default'
