@@ -68,7 +68,7 @@ namespace :crawler do
 
     x_page = (headers['x-page'] || 1).to_i
     x_per_page = (headers['x-per-page'] || 1).to_f
-    x_total = ((headers['x-total'] || 1).to_f / x_per_page).round
+    x_total = ((headers['x-total'] || 1).to_f / x_per_page).ceil
 
     if x_total > 1
       puts '== GET (%d / %d) %s' % [x_page, x_total, path] if ENV['MEET2CODE_DEBUG']

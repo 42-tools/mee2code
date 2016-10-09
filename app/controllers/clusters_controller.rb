@@ -10,9 +10,9 @@ class ClustersController < ApplicationController
   private
 
   def set_campus!
-    campus_id = :'1'
+    @campus_id = :'1'
 
-    @campus = Rails.application.config.meet2code.campus[campus_id]
+    @campus = Rails.application.config.meet2code.campus[@campus_id]
   end
 
   def set_data!
@@ -39,7 +39,7 @@ class ClustersController < ApplicationController
     end
 
     @maps = base.map.with_index do |cluster_value, cluster_index|
-      user_history = UserHistory.cluster(cluster_index + 1)
+      user_history = UserHistory.campus(@campus_id.to_s).cluster(cluster_index + 1)
       @data[cluster_index][:charts] = user_history.chart
       histories = user_history.logged.includes(:user_info_short).map { |history| [history.host, history.user_info_short || UserInfoShort.new] }.to_h
       @data[cluster_index][:percent] = histories.length.to_f / @data[cluster_index][:slots] * 100

@@ -4,13 +4,6 @@
 //= require moment/fr.js
 
 $(function () {
-  $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-    $($(this).attr('href')).find('.charts').each(function() {
-      $chart = $(this).highcharts()
-      $chart.setSize($(this).width(), $chart.chartHeight, doAnimation = false)
-    })
-  })
-
   $('a[href^="#cluster"]').tooltip()
 
   var charts_data = JSON.parse($('#charts').html());
@@ -105,5 +98,10 @@ $(function () {
       }
     },
     series: charts_data
+  })
+
+  $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+    $chart = $('.charts').highcharts()
+    $chart.setSize($('.charts').width(), $chart.chartHeight, doAnimation = false)
   })
 })

@@ -8,8 +8,8 @@ class CampusController < ApplicationController
   end
 
   def clusters_users
-    user_histories = UserHistory.logged.includes(:user_info_short)
-                                .group_by { |history| history.host.gsub(%r(e(\d+)r\d+p\d+), '\1') }
+    user_histories = UserHistory.campus(@campus_id.to_s).logged.includes(:user_info_short)
+                                .group_by { |history| history.host.gsub(%r(^e(\d+)(z|r).+), '\1') }
     render partial: 'clusters_users', locals: { user_histories: user_histories }
   end
 
