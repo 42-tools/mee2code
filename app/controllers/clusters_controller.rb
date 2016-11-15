@@ -41,7 +41,7 @@ class ClustersController < ApplicationController
     @maps = base.map.with_index do |cluster_value, cluster_index|
       user_history = UserHistory.campus(@campus_id.to_s).cluster(cluster_index + 1)
       @data[cluster_index][:charts] = user_history.chart
-      histories = user_history.logged.includes(:user_info_short).map { |history| [history.host, history.user_info_short || UserInfoShort.new] }.to_h
+      histories = user_history.logged.includes(:user_info).map { |history| [history.host, history.user_info || UserInfo.new] }.to_h
       @data[cluster_index][:percent] = histories.length.to_f / @data[cluster_index][:slots] * 100
       @data[cluster_index][:slots] -= histories.length
 

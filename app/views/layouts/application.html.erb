@@ -65,7 +65,7 @@
           <li class="divider"></li>
 <% if user_signed_in? %>
           <li class="dropdown">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown"><%= current_user.user_info_short.display_name %> <%= image_tag('https://cdn.intra.42.fr/userprofil/' + current_user.user_info_short.login + '.jpg', size: '60', alt: current_user.user_info_short.login, class: 'img-circle thumbnail-profile') %> <span class="caret"></span></a>
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown"><%= current_user.user_info.display_name %> <%= image_tag('https://cdn.intra.42.fr/userprofil/' + current_user.user_info.login + '.jpg', size: '60', alt: current_user.user_info.login, class: 'img-circle thumbnail-profile') %> <span class="caret"></span></a>
             <ul class="dropdown-menu" role="menu">
               <li><a href="#">Mon profil</a></li>
               <li><%= link_to 'Mon historique', users_histories_path %></li>

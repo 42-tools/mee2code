@@ -1,6 +1,6 @@
 class UserHistory < ActiveRecord::Base
   belongs_to :user, required: false
-  has_one :user_info_short, through: :user
+  has_one :user_info, through: :user
 
   scope :logged, -> { where(end_at: nil) }
   scope :campus, -> (index) { where(campus_id: index) }

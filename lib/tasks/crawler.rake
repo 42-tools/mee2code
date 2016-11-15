@@ -242,7 +242,7 @@ namespace :crawler do
       end
 
       users << User.new(id: user['id'], email: user['email'], password: Devise.friendly_token[0, 20])
-      user_infos << UserInfoShort.new(user_id: user['id'], login: user['login'], display_name: user['displayname'],
+      user_infos << UserInfo.new(user_id: user['id'], login: user['login'], display_name: user['displayname'],
                                       phone: user['phone'], pool_month: user['pool_month'], pool_year: user['pool_year'],
                                       image_url: user['image_url'], cursus: user['cursus_users'].map { |cursus| cursus['cursus_id'] })
     end
@@ -275,7 +275,7 @@ namespace :crawler do
     puts 'Adds users:   %d' % [users.length - users_exists.length]
 
     updated = 0
-    user_infos_exists = UserInfoShort.select(:id, :user_id, :login, :display_name, :phone, :pool_month, :pool_year, :image_url, :cursus).where(user_id: user_infos.map(&:user_id)).order(:user_id)
+    user_infos_exists = UserInfo.select(:id, :user_id, :login, :display_name, :phone, :pool_month, :pool_year, :image_url, :cursus).where(user_id: user_infos.map(&:user_id)).order(:user_id)
     user_infos_exists_ids = user_infos_exists.map(&:user_id)
 
     user_infos.select { |u| user_infos_exists_ids.include?(u.user_id) }.sort { |a, b| a.user_id <=> b.user_id }.zip(user_infos_exists).each do |data, user_info|
@@ -297,7 +297,7 @@ namespace :crawler do
     end
 
     puts 'Update users info: %d / %d' % [updated, user_infos_exists.length]
-    UserInfoShort.import user_infos.reject { |u| user_infos_exists_ids.include?(u.user_id) }
+    UserInfo.import user_infos.reject { |u| user_infos_exists_ids.include?(u.user_id) }
     puts 'Adds users info:   %d' % [user_infos.length - user_infos_exists.length]
   end
 

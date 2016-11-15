@@ -1,4 +1,4 @@
-class UserInfoShort < ActiveRecord::Base
+class UserInfo < ActiveRecord::Base
   belongs_to :user
   serialize :cursus, Array
 

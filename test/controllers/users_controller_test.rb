@@ -1,8 +1,6 @@
 require 'test_helper'
 
 class UsersControllerTest < ActionController::TestCase
-  include Devise::TestHelpers
-
   test "user can see histories page after sign in" do
     sign_in users(:user_1)
     get :histories

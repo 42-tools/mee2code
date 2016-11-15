@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160831204744) do
+ActiveRecord::Schema.define(version: 20161115134501) do
 
   create_table "projects", force: :cascade do |t|
     t.string   "name"
@@ -32,7 +32,7 @@ ActiveRecord::Schema.define(version: 20160831204744) do
     t.index ["user_id"], name: "index_user_histories_on_user_id"
   end
 
-  create_table "user_info_shorts", force: :cascade do |t|
+  create_table "user_infos", force: :cascade do |t|
     t.integer  "user_id"
     t.string   "login"
     t.string   "display_name"
@@ -43,7 +43,7 @@ ActiveRecord::Schema.define(version: 20160831204744) do
     t.string   "pool_month"
     t.string   "pool_year"
     t.string   "cursus"
-    t.index ["user_id"], name: "index_user_info_shorts_on_user_id"
+    t.index ["user_id"], name: "index_user_infos_on_user_id"
   end
 
   create_table "user_projects", force: :cascade do |t|

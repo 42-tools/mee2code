@@ -1,8 +1,6 @@
 require 'test_helper'
 
 class ClustersControllerTest < ActionController::TestCase
-  include Devise::TestHelpers
-
   test "user can see home page after sign in" do
     sign_in users(:user_1)
     get :index
