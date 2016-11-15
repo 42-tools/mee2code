@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20161115134501) do
+ActiveRecord::Schema.define(version: 20161115142029) do
 
   create_table "projects", force: :cascade do |t|
     t.string   "name"
@@ -36,13 +36,14 @@ ActiveRecord::Schema.define(version: 20161115134501) do
     t.integer  "user_id"
     t.string   "login"
     t.string   "display_name"
-    t.datetime "created_at",   null: false
-    t.datetime "updated_at",   null: false
+    t.datetime "created_at",               null: false
+    t.datetime "updated_at",               null: false
     t.string   "phone"
     t.string   "image_url"
     t.string   "pool_month"
     t.string   "pool_year"
     t.string   "cursus"
+    t.integer  "role",         default: 0
     t.index ["user_id"], name: "index_user_infos_on_user_id"
   end
 
