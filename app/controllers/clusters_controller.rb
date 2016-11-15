@@ -74,7 +74,13 @@ class ClustersController < ApplicationController
             end
 
             if user
-              class_name << (user.piscine? ? 'station-warning' : 'station-success')
+              if user.cursus_piscine?
+                class_name << 'station-warning'
+              elsif user.cursus_born2code?
+                class_name << 'station-success'
+              else
+                class_name << 'station-danger'
+              end
 
               unless user.new_record?
                 data = { login: user.login, title: user.display_name, placement: 'auto', avatar: user.image_url }
